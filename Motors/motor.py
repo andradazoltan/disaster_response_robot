@@ -36,7 +36,7 @@ pL = GPIO.PWM(EL, 255)
 pL.start(0)
 
 #set direction of robot
-det setDirection(direction):
+def setDirection(direction):
 	if direction == FORWARD:
 		leftW = GPIO.HIGH
 		rightW = GPIO.HIGH
@@ -52,9 +52,9 @@ def setPWM(pwmValue):
 #robot moves straight at a given PWM value
 def straight(pwmValue):
 	GPIO.output(MRA, rightW)
-	GPIO.output(MRB, !rightW)
+	GPIO.output(MRB, not rightW)
 	GPIO.output(MLA, leftW)
-	GPIO.output(MLB, !leftW)
+	GPIO.output(MLB, not leftW)
 	
 	setPWM(pwmValue)
 	GPIO.output(ER, GPIO.HIGH)
@@ -69,14 +69,14 @@ def stop():
 def pivot(direction, pwmValue):
 	if direction == LEFT:
 		GPIO.output(MRA, rightW)
-		GPIO.output(MRB, !rightW)
-		GPIO.output(MLA, !leftW)
+		GPIO.output(MRB, not rightW)
+		GPIO.output(MLA, not leftW)
 		GPIO.output(MLB, leftW)
 	else:
-		GPIO.output(MRA, !rightW)
+		GPIO.output(MRA, not rightW)
 		GPIO.output(MRB, rightW)
 		GPIO.output(MLA, leftW)
-		GPIO.output(MLB, !leftW)
+		GPIO.output(MLB, not leftW)
 	
 	setPWM(pwmValue)
 	GPIO.output(ER, GPIO.HIGH)
@@ -86,9 +86,9 @@ def pivot(direction, pwmValue):
 def turn(radius, direction, pwmValue):
 	factor = radius/(radius+14)
 	GPIO.output(MRA, rightW)
-	GPIO.output(MRB, !rightW)
+	GPIO.output(MRB, not rightW)
 	GPIO.output(MLA, leftW)
-	GPIO.output(MLB, !leftW)
+	GPIO.output(MLB, not leftW)
 
 	if direction == LEFT:
 		pR.ChangeDutyCycle(pwmValue*factor)
