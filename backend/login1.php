@@ -1,23 +1,9 @@
-<html>
-<center><h1> Log In </h1></center>
-<br>
-<br>
-
-<center>
-<form action="login.php" method="post">
-	Username: <br>
-	<input type="text" name="username"><br>
-	Password: <br>
-	<input type="text" name="password"><br>
-	<br>
-	<input type="submit" name="login" value ="Log In">
-</form>
-</center>
-</html>
-
 <?php
-if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST["username"])){
+if(isset($_POST['username'])){
 	login();
+}
+else {
+	echo "{\"no info\"}";
 }
 
 function login(){
@@ -38,26 +24,24 @@ function login(){
 
 	$sql = "SELECT password, Primarykey FROM cynthiasdb.users WHERE UserID = '$UserID';";
 	$result = $conn->query($sql);
-
+	
+	#should only give one result 
 	if($result->num_rows > 0){
 		$userpass = $_POST["password"];
 
+		#should only give one result XD
 		while($row = $result->fetch_assoc()){
 			if(password_verify($userpass, $row['password'])){
-				$_SESSION["Primarykey"] = $row['Primarykey'];
 				$key = $row['Primarykey'];
-				header("Location: http://38.88.75.83/db/display.php");
-				exit;
-				return; 
+				$_SESSION["Primarykey"] = $key;
+				echo "{\"success\"}";
+				return;
 			}
 		}
-		echo "password incorrect";
+		echo "{\"wrong pass\"}";
 	}
 	else {
-		echo "UserName not taken. Do you want to ";
-		echo "<a href=\"http://38.88.75.83/createuser.php\"> Create an account? </a>";
+		echo "{\"no such user\"}";
 	}
-
-	 
 }
 

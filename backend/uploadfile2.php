@@ -11,6 +11,7 @@ if(isset($_FILES['UploadFileField'])){
 	 # normalize the file name 
 	 $UploadName = preg_replace("#[^a-z0-9.]#i", "", $UploadName);
 
+
 	 if(!$UploadTmp){
 		 die("No file selected");
 		 echo "wWHAT HAPPENED NOOO";

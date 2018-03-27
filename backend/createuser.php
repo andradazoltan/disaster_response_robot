@@ -16,7 +16,9 @@
 </html>
 
 <?php
-if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['createuser'])){
+header("Access-Control-Allow-Origin: *");
+#if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['createuser'])){
+if(true){
 	createuser();
 }
 
@@ -35,6 +37,8 @@ function createuser(){
 	$UserID = $_POST["username"];
 	$password = $_POST["password"];
 	$date = date("Y-m-d"); 
+
+	$password = password_hash($password, PASSWORD_DEFAULT);
 	
 	$check = "SELECT UserID FROM cynthiasdb.users WHERE UserID = '$UserID';";
 	$rows = $conn->query($check);
@@ -43,7 +47,7 @@ function createuser(){
 		return;
 	}
 
-	$add_user = "INSERT INTO cynthiasdb.users VALUES('$UserID', '$password', '$date', 0, 0);";
+	$add_user = "INSERT INTO cynthiasdb.users VALUES('$UserID', '$date', 0, 0, '$password');";
 
 	if($conn->query($add_user) == TRUE){
 		echo "Successfully added. log in";
