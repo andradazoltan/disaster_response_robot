@@ -1,11 +1,14 @@
 import cv2
 import numpy as np
+import io
 import argparse
+from picamera import PiCamera
+from picamera.array import PiRGBArray
 
 buff_attr             = (20,20)
 SEARCH_THRES          = 0.96
-large_move_x          = 250
-large_move_y          = 250
+large_move_x          = 500
+large_move_y          = 500
 sw_y                  = 25
 sw_x                  = 25
 MATCH_METHOD          = 3
@@ -31,14 +34,19 @@ Tracks camera movement.
 @param v: verbose?
 """
 def track(v):
-    video_cap = cv2.VideoCapture(0) #image from video (default webcam)
+
+    camera = PiCamera()
+    stream = io.BytesIO()
+    camera.resolution =(608,480)
+    camera.framerate = 50
+    rawCapture = PiRGBArray(camera, size=(608,480))
     
-    width = int (video_cap.get(3))
-    height = int (video_cap.get(4))
+    width = 608
+    height = 480
     
     
-    sw_w = width/4 #width/4
-    sw_h = height/4 #height/4
+    sw_w = int(width/4) #width/4
+    sw_h = int(height/4) #height/4
     
     sw_x = int(width/2 - sw_w/2)
     sw_y = int(height/2 - sw_h/2)
@@ -54,30 +62,21 @@ def track(v):
     #Variables to track number of times out of frame
     WIDTH_TOTAL           = 0
     HEIGHT_TOTAL          = 0
-    
-    ret, frame = video_cap.read()
-    
-    #Create new search image 
-    search_box = frame[sw_y: sw_y + sw_h, sw_x: sw_x + sw_w]
-    
-    #Display initial search image captured in red
-    cv2.rectangle(frame, (sw_x, sw_y),
-                         (sw_x + sw_w, sw_y + sw_h),
-                          red, THICKNESS)
-                          
+
     #Tracks previous and current coordinates of image location 
     new_coord = sw_xy
     prev_coord = new_coord
-    reset = False;
-    
-    cv2.imshow('Video', frame)
-    
-    while True:
-    #capture frame by frame
-    #returns return code(tells us if we have run out of frames)
-    #frame = one frame
-        ret, frame = video_cap.read()
-    
+    reset = False
+    temp = True
+      
+    for image in camera.capture_continuous(rawCapture, format="bgr", use_video_port = True):
+        frame = image.array
+
+        if (temp):
+            #Create new search image 
+            search_box = frame[sw_y: sw_y + sw_h, sw_x: sw_x + sw_w]
+            temp = False
+            
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) #convert to grayscale 
         
         #return most probable location of search image in current frame
@@ -93,17 +92,18 @@ def track(v):
                 
         #if prev_coord differs from new_coord, but not by large_move amount, 
         #increase width or height total variables.
-       
+        print (prev_coord[0])
+        print (new_coord[0]) 
         if moved (prev_coord, new_coord): 
         
             #If too large of a move or if the search image cannot be found, reset image
             if (large_move(prev_coord, new_coord) or
                 low(xy_val)):
                 reset = True
-            if (out_of_bounds_width(new_coord, video_cap, width)):
+            if (out_of_bounds_width(new_coord, width)):
                 reset = True
                 WIDTH_TOTAL += 1    
-            if (out_of_bounds_height(new_coord, video_cap, height)):
+            if (out_of_bounds_height(new_coord, height)):
                 reset = True
                 HEIGHT_TOTAL += 1   
                 
@@ -117,26 +117,23 @@ def track(v):
         
         #If needs reset, find new search image
         if reset:
-            ret, frame = video_cap.read()
+            frame = image.array
             search_box = frame[sw_y: sw_y + sw_h, sw_x: sw_x + sw_w]
             new_coord = sw_xy
             prev_coord = new_coord
             reset = False
             xy = update_pos(xy, new_coord)
-            if (v):
-                cv2.rectangle(frame, (new_coord[0], new_coord[1]),
+            cv2.rectangle(frame, (new_coord[0], new_coord[1]),
                              (new_coord[0] + sw_w, new_coord[1] + sw_h),
                               green, THICKNESS)
-                         
-        cv2.imshow('Video', frame)
-        
-        # Close when 'q' key is pressed
+
+        cv2.imshow('Frame', frame)
+        stream.truncate()
+        stream.seek(0)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    
-    video_cap.release()
-    cv2.destroyAllWindows()
-
+        rawCapture.truncate(0)
+        
 """
 Check for match of search image in frame capture 
 
@@ -158,7 +155,7 @@ Checks if search image is now out of bounds vertically.
 @param video_cap: video 
 @param height
 """    
-def out_of_bounds_height(coord, video_cap, height):
+def out_of_bounds_height(coord, height):
     return (coord[1] > (height - (buff_attr[1] + sw_h)) or
         coord[1] < buff_attr[1])
 
@@ -169,7 +166,7 @@ Checks if search image is now out of bounds horiziontally.
 @param video_cap: video 
 @param width
 """   
-def out_of_bounds_width(coord, video_cap, width):
+def out_of_bounds_width(coord, width):
     return (coord[0] > (width - (buff_attr[0] + sw_w)) or 
         coord[0] < buff_attr[0])
 """

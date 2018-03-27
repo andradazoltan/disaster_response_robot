@@ -12,27 +12,27 @@ BACKWARD = 0
 #setup right wheel
 ER = 16
 MRA = 18
-MRB = 19
+MRB = 22
 
 GPIO.setup(MRA, GPIO.OUT)
 GPIO.setup(MRB, GPIO.OUT)
 rightW = GPIO.HIGH
 
 GPIO.setup(ER, GPIO.OUT)
-pR = GPIO.PWM(ER, 255)
+pR = GPIO.PWM(ER, 100)
 pR.start(0)
 
 #setup left wheel
-EL =  21
-MLA = 22
-MLB = 23
+EL =  11
+MLA = 13
+MLB = 15
 
 GPIO.setup(MLA, GPIO.OUT)
 GPIO.setup(MLB, GPIO.OUT)
 leftW = GPIO.HIGH
 
 GPIO.setup(EL, GPIO.OUT)
-pL = GPIO.PWM(EL, 255)
+pL = GPIO.PWM(EL, 100)
 pL.start(0)
 
 #set direction of robot
@@ -57,13 +57,13 @@ def straight(pwmValue):
 	GPIO.output(MLB, not leftW)
 	
 	setPWM(pwmValue)
-	GPIO.output(ER, GPIO.HIGH)
-	GPIO.output(EL, GPIO.HIGH)
+	GPIO.output(ER, True)
+	GPIO.output(EL, True)
 
 #stops the robot in its place
 def stop():
-	GPIO.output(ER, GPIO.LOW)
-	GPIO.output(EL, GPIO.LOW)
+	GPIO.output(ER, False)
+	GPIO.output(EL, False)
 
 #robot rotates on the spot
 def pivot(direction, pwmValue):
@@ -79,8 +79,8 @@ def pivot(direction, pwmValue):
 		GPIO.output(MLB, not leftW)
 	
 	setPWM(pwmValue)
-	GPIO.output(ER, GPIO.HIGH)
-	GPIO.output(EL, GPIO.HIGH)
+	GPIO.output(ER, True)
+	GPIO.output(EL, True)
 
 #robot turns in a circular arc of specified radius
 def turn(radius, direction, pwmValue):
@@ -96,6 +96,6 @@ def turn(radius, direction, pwmValue):
 	else:
 		pR.ChangeDutyCycle(pwmValue)
 		pL.ChangeDutyCycle(pwmValue*factor)
-	GPIO.output(ER, GPIO.HIGH)
-	GPIO.output(EL, GPIO.HIGH)
+	GPIO.output(ER, True)
+	GPIO.output(EL, True)
 	
