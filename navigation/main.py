@@ -1,6 +1,7 @@
 import math
 import sys
 import navigate
+import robot
 
 # input file
 # x y z rssi |
@@ -11,34 +12,37 @@ import navigate
 # l r        --> left right range for row i
 # scale      --> scale: unit = scale cm
 
-def dbm_to_watts(val):
-	return 10 ** (val/10.0 - 3.0)
+info = robot.get_data(int(input()))
+print(info)
 
-# beacon positions
-beacons = []
-for i in range(0, 3):
-	line = [int(x) for x in input().strip().split()]
-	beacons.append([tuple(line[0:3]), dbm_to_watts(line[-1])])
+# get beacons
+beacons = dict()
+for addr in info["beacon_info"]:
+	beacons[addr] = [tuple(info["beacon_info"][addr])]
 
-# robot position
-line = [int(x) for x in input().strip().split()]
-angle = line[3] * math.pi / 180.0
+# robot position and direction
+robot = tuple(info["robot_loc"])
+angle = info["robot_dir"] * math.pi / 180.0
 init_dir = (math.cos(angle), math.sin(angle))
-robot = tuple(line[0:3])
+
+# get grid
+grid = info["grid"]
 
 # dimensions
-n, m = map(int, input().strip().split())
+n, m = grid["grid_size"]
 to_search = [[navigate.OUTSIDE for y in range(0, m+2)] for x in range(0, n+2)]
 
-print (n)
-# lines
+# search area
 for row in range(1, n+1):
-	left, right = map(int, input().strip().split())
+	left, right = grid["to_search"][row-1]
 	for col in range(left, right+1):
 		to_search[row][col] = navigate.UNKNOWN
 
 # get scale
-scale = float(input())
+scale = info["scale"]
+
+pgom = ["navigate.search(", str(beacons), str(robot), str(init_dir), str(to_search), str(scale) + " )"]
+sys.stderr.write('\n'.join(pgom) + "\n\n")
 
 # navigate
 res = navigate.search(beacons, robot, init_dir, to_search, scale)

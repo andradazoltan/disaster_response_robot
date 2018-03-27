@@ -2,51 +2,60 @@
 
 from sys import stdout, stderr
 from math import sqrt, pi, cos, sin
-from collections import deque, defaultdict
+from collections import deque, namedtuple
+Circle = namedtuple("Circle", "x y r")
 
 #UNCOMMENT# import motor
-# def turn(radius, direction, pwmValue):
-# def stop():
-# def straight(pwmValue):
-# def setDirection(direction):
-###
 
-def dummy():
-	return False
-
-import environment
+import robot
 # def stuff conversion and stuff
 # def detect_obstacle(val):
-### 
+# def get_rssi
+# def update_pos
+# def update_cell
+###
 
+########################################################################
+
+# grid values
 OUTSIDE = -1
 UNKNOWN = 0
 VISITED = 1
 OBSTACLE = 2
 BEACON = 7
 
-# cross product error for straightness
+# epsilons and errors
 CP_ERROR = 0.2
+DIST_ERROR = 0.368
+EPS = 1e-3
 
 # positions of the three beacons in order (pos, init rssi)
 beacons = None
 
+# grid info
 discovered, rows, cols = None, None, None
-vdir = None
-scale = 1
+scale = 1.0
+
+# robot info
+prev_pos, vdir = None, None
+
+########################################################################
 
 # functions to calculate things
 def sqr(x):
 	return x*x
 
 def dist(a, b):
-	return sqrt(sqr(a[0]-b[0]) + sqr(a[1]-b[1]) + sqr(a[2]-b[2])) / scale
+	norm = 0
+	for i in range(0, min(len(a), len(b))):
+		norm += sqr(a[i]-b[i])
+	return sqrt(norm)
 
 def cross(a, b):
 	return a[0]*b[1] - a[1]*b[0]
 
 def get_ratio(power, distance):
-	return power * distance * distance
+	return power * sqr(distance)
 
 def in_grid(pos):
 	return pos[0] >= 0 and pos[1] >= 0 and pos[0] < rows and pos[1] < cols
@@ -56,11 +65,57 @@ def direction(s, t):
 	norm = sqrt(sqr(x) + sqr(y))
 	return (float(x)/norm, float(y)/norm)
 
+# return intersection of c1 and c2 that is closest to c3
+def cc_inter(c1, c2, c3):
+	vec = (c2.x - c1.x, c2.y - c1.y)
+	dist_sqr = float(sqr(vec[0]) + sqr(vec[1]))
+	diff_sqr = float(sqr(c1.r) - sqr(c2.r))
+	radi_sqr = float(sqr(c1.r) + sqr(c2.r))
+	perp = (0.5 * (c1.x + c2.x + vec[0] * diff_sqr / dist_sqr),
+			0.5 * (c1.y + c2.y + vec[1] * diff_sqr / dist_sqr))
+	difference = 2.0 * dist_sqr * radi_sqr - sqr(dist_sqr) - sqr(diff_sqr)
+	if difference < EPS:
+		return perp
+	else:
+		factor = 0.5 * sqrt(difference) / dist_sqr
+		i1 = (perp[0] + factor * (-vec[1]), perp[1] + factor * (vec[0]))
+		i2 = (perp[0] - factor * (-vec[1]), perp[1] - factor * (vec[0]))
+		if abs(dist(i1, (c3.x, c3.y)) - c3.r) < abs(dist(i2, (c3.x, c3.y)) - c3.r):
+			return i1
+		else:
+			return i2
+
+########################################################################
+
+def grid_index():
+	circle = []
+	for addr in beacons:
+		x, y, z = beacons[addr][0]
+		length_sqr = beacons[addr][1] / robot.get_rssi(addr)
+		radius = sqrt(length_sqr - sqr(z))
+		circle.append(Circle(x, y, radius))
+
+	# cc inter
+	inter = (0,0)
+	for i in range(0, 3):
+		point = cc_inter(circle[i], circle[(i+1)%3], circle[(i+2)%3])
+		inter = (inter[0] + point[0] / 3.0, inter[1] + point[1] / 3.0)
+
+	print(inter)
+	global vdir, prev_pos
+	# update prev_pos and vdir
+	if dist(inter, prev_pos) > DIST_ERROR:
+		vdir = direction(prev_pos, inter)
+		prev_pos = inter
+
+	return (int(round(inter[0])), int(round(inter[1])))
+
 # TODO actually use the motor library
-# move robot from cur to goal following a straight line
+# move robot from cur to goal
 def move_to(cur, goal):
 	global vdir
 	stderr.write("move from " + str(cur) + " to " + str(goal) + '\n')
+
 	# left, straight, right ?
 	aim = direction(cur, goal)
 	cross_prod = cross(vdir, aim)
@@ -74,7 +129,13 @@ def move_to(cur, goal):
 	else:
 		# straight
 		stderr.write("straight\n\n")
-	# TODO change this
+
+	# TODO fix this
+	# do the loop
+	index = grid_index()
+	while index != goal:
+		cur = index
+		index = grid_index()
 	vdir = direction(cur, goal)
 	return goal
 
@@ -126,6 +187,8 @@ def reachable(pos, grid):
 	pos = follow_path(pos, path[::-1], grid)
 	return pos
 
+########################################################################
+
 # detect obstacles, find neighbour
 def get_neighbour(pos, grid):
 	best = -2
@@ -148,7 +211,7 @@ def get_neighbour(pos, grid):
 		# check to see if we want to go there
 		if grid[to_check[0]][to_check[1]] == UNKNOWN:
 			# check to see if we can go there
-			blocked = environment.detect_obstacle(i-1)
+			blocked = robot.detect_obstacle(i-1)
 			if blocked:
 				grid[to_check[0]][to_check[1]] = OBSTACLE
 			elif possible is None:
@@ -167,39 +230,42 @@ def explore(pos, grid):
 		next_pos = get_neighbour(pos, grid)
 	return pos
 
+########################################################################
+
 # assume the input has been cleaned up
 # positions of the three beacons in order (pos, init rssi)
-# initial position of robot (pair)
+# initial position of robot_pos (pair)
 # to_search (visited array)
-def search(init_beacons, robot, init_dir, to_search, sc):
-	global scale, rows, cols, discovered, vdir, beacons
+def search(init_beacons, robot_pos, init_dir, to_search, sc):
+	global scale, rows, cols, discovered, vdir, prev_pos, beacons
 	discovered = 0
 	rows = len(to_search)
 	cols = len(to_search[0])
 	scale = sc
 	beacons = init_beacons
 	vdir = init_dir
+	prev_pos = robot_pos
 
 	# initialize beacon dist
-	for i in range(0, 3):
-		to_search[beacons[i][0][0]][beacons[i][0][1]] = BEACON
-		beacons[i].append(get_ratio(beacons[i][1], dist(robot, beacons[i][0])))
+	for addr in beacons:
+		to_search[beacons[addr][0][0]][beacons[addr][0][1]] = BEACON
+		beacons[addr].append(get_ratio(robot.get_rssi(addr), dist(robot_pos, beacons[addr][0])))
 
 	# debug
 	stderr.write("scale: " + str(scale) + '\n')
 	stderr.write("init beacons: \n" + '\n'.join(map(str, beacons)) + '\n')
-	stderr.write("init robot: " + str(robot) + '\n')
+	stderr.write("init robot: " + str(robot_pos) + '\n')
 	stderr.write("init dir: " + str(vdir) + '\n')
 	stderr.write("to_search: \n" + '\n'.join(map(str, to_search)) + '\n')
 	stderr.write("END INITIAL DEBUG\n\n")
 
 	# do the search
-	robot = reachable(robot, to_search)
-	while robot is not None:
-		stderr.write("explore from " + str(robot) + ' ------------------ \n\n')
-		robot = explore(robot, to_search)
+	robot_pos = reachable(robot_pos, to_search)
+	while robot_pos is not None:
+		stderr.write("explore from " + str(robot_pos) + ' ------------------ \n\n')
+		robot_pos = explore(robot_pos, to_search)
 		stderr.write("to_search: \n" + '\n'.join(map(str, to_search)) + '\n\n')
-		robot = reachable(robot, to_search)
+		robot_pos = reachable(robot_pos, to_search)
 
 	return discovered
 
