@@ -1,4 +1,19 @@
 
+function test() {
+    $.ajax({
+        type: 'POST',
+        url: 'http://38.88.75.83/db/login1.php',
+        data: {'username': "fafa", 'password': "fewfaafwfwaaw"},
+        success: function(data) {
+            console.log("sucessfully logged in!");
+            location.href = "http://38.88.75.83/Login/signup.html"
+        },
+        error: function(data) {
+            console.log("error logging in!");
+        },
+    });
+}
+
 (function ($) {
     "use strict";
 
@@ -19,9 +34,12 @@
   
     /*==================================================================
     [ Validate ]*/
-    var input = $('.validate-input .input100');
+    var input = $('.validate-form .input100')
 
     $('.validate-form').on('submit',function(){
+        var username = $("input[name=username]").val();
+        var pw = $("input[name=pass]").val();
+
         var check = true;
 
         for(var i=0; i<input.length; i++) {
@@ -31,9 +49,26 @@
             }
         }
 
+        $.ajax({
+            type: 'POST',
+            url: 'http://38.88.75.83/db/login1.php',
+            data: {'username': username, 'password': pw},
+            success: function(data) {
+                console.log("sucessfully logged in!");
+                console.log(data);
+                if (data == "{\"success\"}") {
+                    location.href = "http://38.88.75.83/Login/signup.html";
+                } else if (data == "{\"no such user\"}"){
+                    
+                } 
+            },
+            error: function(data) {
+                console.log("error logging in!");
+            },
+        });
+
         return check;
     });
-
 
     $('.validate-form .input100').each(function(){
         $(this).focus(function(){
@@ -64,8 +99,7 @@
         var thisAlert = $(input).parent();
 
         $(thisAlert).removeClass('alert-validate');
-    }
-    
+    }   
     
 
 })(jQuery);
