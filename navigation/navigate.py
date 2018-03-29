@@ -5,14 +5,8 @@ from math import sqrt, pi, cos, sin
 from collections import deque, namedtuple
 Circle = namedtuple("Circle", "x y r")
 
-#UNCOMMENT# import motor
-
 import robot
-# def stuff conversion and stuff
-# def detect_obstacle(val):
-# def get_rssi
-# def update_pos
-# def update_cell
+# communication and sensors
 ###
 
 ########################################################################
@@ -22,10 +16,12 @@ OUTSIDE = -1
 UNKNOWN = 0
 VISITED = 1
 OBSTACLE = 2
+OBJECT = 3
 BEACON = 7
 
 # epsilons and errors
-CP_ERROR = 0.2
+ANG_ROTATE = 50
+ANG_ERROR = 10
 DIST_ERROR = 0.368
 EPS = 1e-3
 
@@ -110,41 +106,61 @@ def grid_index():
 
 	return (int(round(inter[0])), int(round(inter[1])))
 
-# TODO actually use the motor library
+# TODO probably very wrong
 # move robot from cur to goal
 def move_to(cur, goal):
 	global vdir
-	stderr.write("move from " + str(cur) + " to " + str(goal) + '\n')
+	# stderr.write("move from " + str(cur) + " to " + str(goal) + '\n')
 
 	# left, straight, right ?
 	aim = direction(cur, goal)
-	cross_prod = cross(vdir, aim)
-	stderr.write("cross: " + str(cross_prod) + '\n')
-	if cross_prod > CP_ERROR:
-		# turn left
-		stderr.write("turn left\n\n")
-	elif cross_prod < -CP_ERROR:
-		# turn right
-		stderr.write("turn right\n\n")
+
+	# check if we should rotate 180
+	if dot_p(vdir, aim) < 0:
+		robot.rotate(robot.LEFT, abs(180))
+		vdir = (-vdir[0], -vdir[1])
+
+	# get angle
+	angle = asin(cross(vdir, aim))
+	# stderr.write("angle: " + str(angle) + '\n')
+	if angle > ANG_ERROR:
+		if angle > ANG_ROTATE:
+			# rotate left
+			stderr.write("rotate left\n\n")
+			robot.rotate(robot.LEFT, abs(angle))
+			robot.straight()
+		else:
+			# turn left
+			stderr.write("turn left\n\n")
+			robot.turn(robot.LEFT, abs(angle))
+	elif angle < -ANG_ERROR:
+		if angle < -ANG_ROTATE:
+			# rotate right
+			stderr.write("rotate right\n\n")
+			robot.rotate(robot.RIGHT, abs(angle))
+			robot.straight()
+		else:
+			# turn right
+			stderr.write("turn right\n\n")
+			robot.turn(robot.RIGHT, abs(angle))
 	else:
 		# straight
 		stderr.write("straight\n\n")
+		robot.straight()
 
-	# TODO fix this
-	# do the loop
+	# TODO probably wrong
+	# loop until correct position
 	index = grid_index()
 	while index != goal:
-		cur = index
 		index = grid_index()
-	vdir = direction(cur, goal)
 	return goal
 
 # follow path from current position to goal
 def follow_path(pos, path, grid):
-	stderr.write("PATH: " + str(path) + '\n\n')
+	# stderr.write("PATH: " + str(path) + '\n\n')
 	for cell in path:
 		pos = move_to(pos, cell)
-	stderr.write("done path ~~~ \n\n")
+	# stderr.write("done path ~~~ \n\n")
 	return pos
 
 # find next unvisited grid cell
@@ -185,6 +201,7 @@ def reachable(pos, grid):
 		path.append(goal)
 		goal = previous[goal]
 	pos = follow_path(pos, path[::-1], grid)
+	robot.stop()
 	return pos
 
 ########################################################################
@@ -202,12 +219,12 @@ def get_neighbour(pos, grid):
 	# start with left
 	left = (aim + 3) % 4
 	possible = None
-	stderr.write(" @ " + str(pos) + '\n')
+	# stderr.write(" @ " + str(pos) + '\n')
 	# we do not need to check behind the robot
 	for i in range(0, 3):
 		cur = (left + i) % 4
 		to_check = (int(round(pos[0] + cos(cur*pi/2))), int(round(pos[1] + sin(cur*pi/2))))
-		stderr.write("TRY " + str(to_check) + '\n')
+		# stderr.write("TRY " + str(to_check) + '\n')
 		# check to see if we want to go there
 		if grid[to_check[0]][to_check[1]] == UNKNOWN:
 			# check to see if we can go there
@@ -216,7 +233,7 @@ def get_neighbour(pos, grid):
 				grid[to_check[0]][to_check[1]] = OBSTACLE
 			elif possible is None:
 				possible = to_check
-	stderr.write("neighbour from " + str(pos) + " : " + str(possible) + '\n')
+	# stderr.write("neighbour from " + str(pos) + " : " + str(possible) + '\n')
 	return possible
 
 # explore unvisited area by following the right edge
@@ -228,6 +245,7 @@ def explore(pos, grid):
 		pos = move_to(pos, next_pos)
 		grid[pos[0]][pos[1]] = VISITED
 		next_pos = get_neighbour(pos, grid)
+	robot.stop()
 	return pos
 
 ########################################################################
@@ -251,21 +269,23 @@ def search(init_beacons, robot_pos, init_dir, to_search, sc):
 		to_search[beacons[addr][0][0]][beacons[addr][0][1]] = BEACON
 		beacons[addr].append(get_ratio(robot.get_rssi(addr), dist(robot_pos, beacons[addr][0])))
 
-	# debug
+	''' # debug
 	stderr.write("scale: " + str(scale) + '\n')
 	stderr.write("init beacons: \n" + '\n'.join(map(str, beacons)) + '\n')
 	stderr.write("init robot: " + str(robot_pos) + '\n')
 	stderr.write("init dir: " + str(vdir) + '\n')
 	stderr.write("to_search: \n" + '\n'.join(map(str, to_search)) + '\n')
 	stderr.write("END INITIAL DEBUG\n\n")
+	'''
 
 	# do the search
 	robot_pos = reachable(robot_pos, to_search)
 	while robot_pos is not None:
-		stderr.write("explore from " + str(robot_pos) + ' ------------------ \n\n')
+		# stderr.write("explore from " + str(robot_pos) + ' ------------------ \n\n')
 		robot_pos = explore(robot_pos, to_search)
-		stderr.write("to_search: \n" + '\n'.join(map(str, to_search)) + '\n\n')
+		# stderr.write("to_search: \n" + '\n'.join(map(str, to_search)) + '\n\n')
 		robot_pos = reachable(robot_pos, to_search)
+	print("DONE")
 
 	return discovered
 
