@@ -2,7 +2,7 @@ import subprocess
 import requests
 import math
 
-import sensors
+#import sensors
 import time
 
 #################
@@ -63,7 +63,10 @@ RIGHT = -1
 STRAIGHT = 0
 obstacle_dist = 15 # distance to obstacle in cm
 
+# TODO updated
 # TODO CHECK THIS (and everything after this line)
+
+# ##### TODO from a while ago, idk what this does anymore
 # detect obstacles with sonar
 def detect_obstacle(aim):
 	if aim == LEFT:
@@ -82,16 +85,23 @@ def detect_obstacle(aim):
 	else:
 		return True
 
-WAIT_FOR_90 = 1.3 # s
+# detect obstacles with sonar
+def detect_obstacle(aim):
+	return False
 
-def rotate(direction, angle):
-	if direction == LEFT:
+WAIT_FOR_90 = 1.3 # s
+WAIT_FOR_CELL = 1.4 # s
+
+# signed angle from -pi to pi
+def rotate(angle):
+	if angle > 0:
 		motor.pivot(motor.LEFT, 100)
-	else:
+	elif angle < 0:
 		motor.pivot(motor.RIGHT, 100)
-	time.sleep(WAIT_FOR_90 * angle / 90.0)
+	time.sleep(WAIT_FOR_90 * abs(angle) / 90.0)
 	return
 
+##### ???
 def turn(direction, angle):
 	radius = 45.0 / angle
 	if direction == LEFT:
@@ -102,6 +112,7 @@ def turn(direction, angle):
 
 def straight():
 	straight(100)
+	time.sleep(WAIT_FOR_CELL)
 	return
 
 def stop():

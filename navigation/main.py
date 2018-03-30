@@ -14,40 +14,43 @@ import robot
 
 def main():
 	info = robot.get_data(int(input()))
+	sys.stderr.write("INFO: \n" + str(info))
 
-# get beacons
+	# get beacons
 	beacons = dict()
 	for addr in info["beacon_info"]:
 		beacons[addr] = [tuple(info["beacon_info"][addr])]
 
-# robot position and direction
-	robot = tuple(info["robot_loc"])
+	# robot position and direction
+	rob = tuple(info["robot_loc"])
 	angle = info["robot_dir"] * math.pi / 180.0
 	init_dir = (math.cos(angle), math.sin(angle))
 
-# get grid
+	# get grid
 	grid = info["grid"]
 
-# dimensions
+	# dimensions
 	n, m = grid["grid_size"]
 	to_search = [[navigate.OUTSIDE for y in range(0, m+2)] for x in range(0, n+2)]
 
-# search area
+	# search area
 	for row in range(1, n+1):
 		left, right = grid["to_search"][row-1]
 		for col in range(left, right+1):
 			to_search[row][col] = navigate.UNKNOWN
 
-# get scale
+	# get scale
 	scale = info["scale"]
 
-	pgom = ["navigate.search(", str(beacons), str(robot), str(init_dir), str(to_search), str(scale) + " )"]
+	pgom = ["navigate.search(", str(beacons), str(rob), str(init_dir), str(to_search), str(scale) + " )"]
 	sys.stderr.write('\n'.join(pgom) + "\n\n")
 
-# navigate
-	res = navigate.search(beacons, robot, init_dir, to_search, scale)
+	# navigate
+	res = navigate.search(beacons, rob, init_dir, to_search, scale)
 	if res is not 0:
 		print("ERROR: " + str(res))
 	return res
 
+print("READY")
 main()
+
