@@ -5,6 +5,10 @@ import math
 #import sensors
 import time
 
+# MODES
+AUTO = 0
+MANUAL = 1
+
 #################
 # server requests
 
@@ -33,6 +37,13 @@ def update_cell(r_id, pos, status):
 			}
 	)
 	return
+
+def get_joystick(r_id):
+	data = requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()
+	return data['dx'], data['dy']
+
+def get_mode(r_id):
+	return requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
 
 #################
 # RSSI stuff
@@ -101,7 +112,7 @@ def turn(direction, angle):
 		motor.turn(radius, motor.RIGHT, 100)
 	return
 
-def straight():
+def straight(scale):
 	straight(100)
 	time.sleep(WAIT_FOR_CELL)
 	return
