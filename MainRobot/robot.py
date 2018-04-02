@@ -112,7 +112,7 @@ def turn(direction, angle):
 		motor.turn(radius, motor.RIGHT, 100)
 	return
 
-def straight():
+def straight(scale):
 	straight(100)
 	time.sleep(WAIT_FOR_CELL)
 	return
