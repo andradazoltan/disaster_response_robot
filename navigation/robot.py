@@ -9,8 +9,8 @@ import time
 # server requests
 
 # get initial configuration
-def get_data(n):
-	return requests.get("http://38.88.75.83/db/robot.php?id=" + str(n)).json()
+def get_data(r_id):
+	return requests.get("http://38.88.75.83/db/robot.php?id=" + str(r_id)).json()
 
 def update_robot(r_id, pos, vdir):
 	requests.post(
@@ -23,16 +23,7 @@ def update_robot(r_id, pos, vdir):
 	)
 	return
 
-def update_cell(r_id, pos, value):
-	# get status
-	status = 'unknown'
-	if value == 1:
-		status = 'empty'
-	elif value == 2:
-		status = 'obstacle'
-	elif value == 3:
-		status = 'object'
-
+def update_cell(r_id, pos, status):
 	requests.post(
 			"http://38.88.75.83/db/updategrid.php?id="+str(r_id),
 			data = {
@@ -42,6 +33,15 @@ def update_cell(r_id, pos, value):
 			}
 	)
 	return
+
+AUTO = 0
+MANUAL = 1
+def get_mode(r_id):
+	return requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
+
+def manual_mode(r_id, pos, vdir):
+	print("add manual mode")
+	return pos
 
 #################
 # RSSI stuff

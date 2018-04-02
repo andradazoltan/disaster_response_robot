@@ -32,8 +32,12 @@ beacons = None
 discovered, rows, cols = None, None, None
 scale = 1.0
 
+# mode info
+mode = AUTO
+
 # robot info
 prev_pos, vdir = None, None
+robot_id = None
 
 ########################################################################
 
@@ -110,8 +114,8 @@ def grid_index():
 # TODO probably very wrong
 # move robot from cur to goal
 def move_to(cur, goal):
-	global vdir
-	# stderr.write("move from " + str(cur) + " to " + str(goal) + '\n')
+	global vdir, mode
+	robot.update_cell(robot_id, cur, 'visited')
 
 	# left, straight, right ?
 	aim = direction(cur, goal)
@@ -131,6 +135,13 @@ def move_to(cur, goal):
 	# update vdir
 	vdir = direction(cur, goal)
 
+	# get auto / manual
+	mode = robot.get_mode(robot_id)
+
+	# update robot
+	robot.update_robot(robot_id, cur, vdir)
+	robot.update_cell(robot_id, cur, 'robot')
+
 	return goal
 
 # follow path from current position to goal
@@ -138,6 +149,9 @@ def follow_path(pos, path, grid):
 	# stderr.write("PATH: " + str(path) + '\n\n')
 	for cell in path:
 		pos = move_to(pos, cell)
+		if mode == robot.MANUAL:
+			robot.stop()
+			return pos
 	# stderr.write("done path ~~~ \n\n")
 	return pos
 
@@ -209,6 +223,7 @@ def get_neighbour(pos, grid):
 			blocked = robot.detect_obstacle(i-1)
 			if blocked:
 				grid[to_check[0]][to_check[1]] = OBSTACLE
+				robot.update_cell(robot_id, to_check, 'obstacle')
 			elif possible is None:
 				possible = to_check
 	# stderr.write("neighbour from " + str(pos) + " : " + str(possible) + '\n')
@@ -222,6 +237,9 @@ def explore(pos, grid):
 	while next_pos is not None:
 		pos = move_to(pos, next_pos)
 		grid[pos[0]][pos[1]] = VISITED
+		if mode == robot.MANUAL:
+			robot.stop()
+			return pos
 		next_pos = get_neighbour(pos, grid)
 	robot.stop()
 	return pos
@@ -259,10 +277,13 @@ def search(init_beacons, robot_pos, init_dir, to_search, sc):
 	# do the search
 	robot_pos = reachable(robot_pos, to_search)
 	while robot_pos is not None:
-		# stderr.write("explore from " + str(robot_pos) + ' ------------------ \n\n')
-		robot_pos = explore(robot_pos, to_search)
-		# stderr.write("to_search: \n" + '\n'.join(map(str, to_search)) + '\n\n')
-		robot_pos = reachable(robot_pos, to_search)
+		if mode == robot.MANUAL:
+			robot_pos = robot.manual_mode(robot_id, robot_pos, vdir)
+		else:
+			robot_pos = explore(robot_pos, to_search)
+		if mode != robot.MANUAL:
+			robot_pos = reachable(robot_pos, to_search)
+	robot.stop()
 	print("DONE")
 
 	return discovered
@@ -279,7 +300,9 @@ def search(init_beacons, robot_pos, init_dir, to_search, sc):
 # scale      --> scale: unit = scale cm
 
 def main():
-	info = robot.get_data(int(input()))
+	global robot_id
+	robot_id = int(input())
+	info = robot.get_data(robot_id)
 	sys.stderr.write("INFO: \n" + str(info))
 
 	# get beacons
