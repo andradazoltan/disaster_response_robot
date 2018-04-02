@@ -1,5 +1,6 @@
 import cv2
 import sys
+import robot
 import dlib 
 import argparse
 import imutils
@@ -24,8 +25,8 @@ def start_camera():
     rawCapture = PiRGBArray(camera, size=(128,128))
 
     #Create HOG face detector from dlib class
-    face_detector = dlib.get_frontal_face_detector()
-    landmark_predictor_model = "shape_predictor_68_face_landmarks.dat"
+    #face_detector = dlib.get_frontal_face_detector()
+    #landmark_predictor_model = "shape_predictor_68_face_landmarks.dat"
 
     counter = 0
 
@@ -42,21 +43,35 @@ def start_camera():
         grayleft = cv2.warpAffine(gray,ML,(int(cols/2), int(rows/2)))
         MR = cv2.getRotationMatrix2D((int(cols/2), int(rows/2)),270, 1)
         grayright = cv2.warpAffine(gray,MR,(int(cols/2), int(rows/2)))
-        detected_faces = face_detector(gray,1)
-        detected_left = face_detector(grayleft,1)
-        detected_right = face_detector(grayright,1)
+        #detected_faces = face_detector(gray,1)
+        #detected_left = face_detector(grayleft,1)
+        #detected_right = face_detector(grayright,1)
     
         #if (len(detected_faces) + len(detected_left) + len(detected_right) > 0): #face detected
         
         if (counter == 90):
-            requests.post(URL, files = upright)
+            cv2.imwrite("frame.jpg", upright)
+            requests.post(URL, files = cv2.imread("frame.jpg"))
             counter = 0
         counter += 1
+
             
         #crop = frame[face_rect.top():face_rect.bottom(), face_rect.left():face_rect.right()]
 
         
-
     stream.truncate()
     stream.seek(0)
     rawCapture.truncate(0)
+
+# Function commands/help/options
+def main():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("-h", "-help",action= "help", default=argparse.SUPPRESS, 
+                        help = "Function uses OpenCV's template matching to track camera/robot movement.")
+    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+    
+    args = parser.parse_args()
+    start_camera();
+
+if __name__ == '__main__':
+   main()
