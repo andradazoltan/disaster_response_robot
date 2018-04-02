@@ -6,7 +6,7 @@ spi = spidev.SpiDev()
 spi.open(0,0)
 GPIO.setmode(GPIO.BOARD)
 
-tempCh = 5
+tempCh = 3
 lightCh = 2
 
 hsIN = 12
