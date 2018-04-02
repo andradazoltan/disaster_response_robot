@@ -1,4 +1,4 @@
-from automatic import *
+import robot
 from manual import *
 from sys import stdout, stderr
 from math import sqrt, pi, cos, sin, asin, acos
