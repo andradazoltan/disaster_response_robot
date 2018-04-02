@@ -12,6 +12,11 @@ lightCh = 2
 hsIN = 12
 hsOUT = 12
 
+servo = 7
+GPIO.setup(servo, GPIO.OUT)
+servoPWM = GPIO.PWM(servo, 50)
+servoPWM.start(0)
+
 echoPin = 29
 trigPin = 31
 GPIO.setup(echoPin, GPIO.IN)
@@ -25,6 +30,20 @@ def readLight():
     adc = ((read[1]&3)<<8)+read[2]
  
     return (adc/1024.0) * 100.0
+
+
+""" Reads the temperature read on the LM35 sensor
+    and returns it in degress Celsius."""
+def readTemp():
+    #read value from SPI and convert to transimitted value
+    read = spi.xfer2([1,(8+tempCh)<<4,0])
+    adc = ((read[1]&3)<<8)+read[2]
+
+    #convert adc value to volts, then final temp
+    volts = ((adc*0.5)/1023.0)
+    temp = volts *1000.0
+
+    return temp
 
 
 """ Reads the distance read on the ultrasonic
@@ -48,19 +67,17 @@ def readDistance():
     return(endTime - startTime) * 17150
 
 
-""" Reads the temperature read on the LM35 sensor
-    and returns it in degress Celsius."""
-def readTemp():
-    #read value from SPI and convert to transimitted value
-    read = spi.xfer2([1,(8+tempCh)<<4,0])
-    adc = ((read[1]&3)<<8)+read[2]
-
-    #convert adc value to volts, then final temp
-    volts = ((adc*0.5)/1023.0)
-    temp = volts *1000.0
-
-    return temp
-
+""" Turns the servo motor to a specified angle
+    @param angle - angle in degrees between 0 and 180
+                   to turn to"""
+def turnServo(angle):
+    dutyCycle = angle/18 + 2
+    GPIO.output(servo, True)
+    servoPWM.ChangeDutyCycle(dutyCycle)
+    sleep(1) #wait for servo to reach specified angle
+    
+    GPIO.output(servo, False)
+    servoPWM.ChangeDutyCycle(0)
 
 
 """ Initializes communiction with DHT11 sensor and
@@ -105,7 +122,7 @@ def readHumidity():
         times[i+1] = (getMicroSeconds(1))
    
     #parse through read times to see what data bits were sent
-    for i in range(0,40):
+    for i in range(0,38):
         lowtime = times[2*i]
         hightime = times[2*i+1]
 
@@ -122,17 +139,5 @@ def getMicroSeconds(level):
     while GPIO.input(hsIN) == level:
         count += 1
         time.sleep(0.00001)
-        print(level)
         
     return count
-
-if __name__ == '__main__':
-    try:
-        while True:
-            light = readHumidity()
-            print(light)
-            time.sleep(1)
-          
-    except KeyboardInterrupt:
-        GPIO.cleanup()
-    

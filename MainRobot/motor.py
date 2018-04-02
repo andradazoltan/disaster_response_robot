@@ -16,7 +16,7 @@ MRB = 22
 
 GPIO.setup(MRA, GPIO.OUT)
 GPIO.setup(MRB, GPIO.OUT)
-rightW = GPIO.HIGH
+rightW = True
 
 GPIO.setup(ER, GPIO.OUT)
 pR = GPIO.PWM(ER, 100)
@@ -29,7 +29,7 @@ MLB = 15
 
 GPIO.setup(MLA, GPIO.OUT)
 GPIO.setup(MLB, GPIO.OUT)
-leftW = GPIO.HIGH
+leftW = True
 
 GPIO.setup(EL, GPIO.OUT)
 pL = GPIO.PWM(EL, 100)
@@ -38,11 +38,11 @@ pL.start(0)
 #set direction of robot
 def setDirection(direction):
 	if direction == FORWARD:
-		leftW = GPIO.HIGH
-		rightW = GPIO.HIGH
+		leftW = True
+		rightW = True
 	else:
-		leftW = GPIO.LOW
-		rightW = GPIO.LOW
+		leftW = False
+		rightW = False
 
 #set PWM to control speed of wheels
 def setPWM(pwmValue):
@@ -62,8 +62,7 @@ def straight(pwmValue):
 
 #stops the robot in its place
 def stop():
-	GPIO.output(ER, False)
-	GPIO.output(EL, False)
+	setPWM(0)
 
 #robot rotates on the spot
 def pivot(direction, pwmValue):
