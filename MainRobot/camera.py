@@ -33,6 +33,10 @@ def start_camera():
         frame = image.array
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        x, y = frame.shape
+        MU = cv2.getRotationMatrix2D(int(x/2), int(y/2), 180, 1)
+        upright = cv2.wrapAffine(frame, MU, (int(x/2), int(y/2)))
+
         rows, cols = gray.shape
         ML = cv2.getRotationMatrix2D((int(cols/2), int(rows/2)),90, 1)
         grayleft = cv2.warpAffine(gray,ML,(int(cols/2), int(rows/2)))
@@ -45,11 +49,13 @@ def start_camera():
         #if (len(detected_faces) + len(detected_left) + len(detected_right) > 0): #face detected
         
         if (counter == 90):
-            requests.post(URL, files = frame)
+            requests.post(URL, files = upright)
             counter = 0
         counter += 1
             
         #crop = frame[face_rect.top():face_rect.bottom(), face_rect.left():face_rect.right()]
+
+        
 
     stream.truncate()
     stream.seek(0)
