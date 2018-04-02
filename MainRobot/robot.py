@@ -5,6 +5,10 @@ import math
 #import sensors
 import time
 
+# MODES
+AUTO = 0
+MANUAL = 1
+
 #################
 # server requests
 

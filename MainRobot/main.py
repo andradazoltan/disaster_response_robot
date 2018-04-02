@@ -33,7 +33,7 @@ discovered, rows, cols = None, None, None
 scale = 1.0
 
 # mode info
-mode = AUTO
+mode = robot.AUTO
 
 # robot info
 prev_pos, vdir = None, None
@@ -278,7 +278,7 @@ def search(init_beacons, robot_pos, init_dir, to_search, sc):
 	robot_pos = reachable(robot_pos, to_search)
 	while robot_pos is not None:
 		if mode == robot.MANUAL:
-			robot_pos = robot.manual_mode(robot_id, robot_pos, vdir)
+			robot_pos = manual_mode(robot_id, robot_pos, vdir)
 		else:
 			robot_pos = explore(robot_pos, to_search)
 		if mode != robot.MANUAL:
