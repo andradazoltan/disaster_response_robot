@@ -39,7 +39,8 @@ def update_cell(r_id, pos, status):
 	return
 
 def get_joystick(r_id):
-	#TODO: write code here for getting joystick values from server
+	data = requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()
+	return data['dx'], data['dy']
 
 def get_mode(r_id):
 	return requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
