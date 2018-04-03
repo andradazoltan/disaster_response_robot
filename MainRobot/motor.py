@@ -97,4 +97,6 @@ def turn(radius, direction, pwmValue):
 		pL.ChangeDutyCycle(pwmValue*factor)
 	GPIO.output(ER, True)
 	GPIO.output(EL, True)
-	
+
+def cleanup():
+	GPIO.cleanup()
