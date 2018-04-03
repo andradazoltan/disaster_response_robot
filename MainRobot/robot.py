@@ -44,7 +44,7 @@ def get_joystick(r_id):
 	return data['dx'], data['dy']
 
 def get_mode(r_id):
-	return requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
+	return requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
 
 #################
 # RSSI stuff

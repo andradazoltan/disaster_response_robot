@@ -56,6 +56,9 @@ def dist(a, b):
 def cross(a, b):
 	return a[0]*b[1] - a[1]*b[0]
 
+def dot_prod(a, b):
+	return a[0]*b[0] + a[1]*b[1]
+
 def get_ratio(power, distance):
 	return power * sqr(distance)
 
@@ -119,13 +122,15 @@ def move_to(cur, goal):
 	global vdir, mode
 	robot.update_cell(robot_id, cur, 'visited')
 
+	stderr.write("move from " + str(cur) + " to " + str(goal) + '\n')
+
 	# left, straight, right ?
 	aim = direction(cur, goal)
 
 	# get angle
 	angle = asin(cross(vdir, aim))
 	# check if this angle is obtuse
-	if dot_p(vdir, aim) < 0:
+	if dot_prod(vdir, aim) < 0:
 		angle = pi - angle
 
 	# rotate to correct direction
@@ -159,6 +164,7 @@ def follow_path(pos, path, grid):
 
 # find next unvisited grid cell
 def reachable(pos, grid):
+	stderr.write("check reachability\n")
 	todo = deque()
 	vis = set()
 	previous = dict()
@@ -233,6 +239,7 @@ def get_neighbour(pos, grid):
 
 # explore unvisited area by following the right edge
 def explore(pos, grid):
+	stderr.write("search area\n")
 	global rows, cols, scale, discovered
 	grid[pos[0]][pos[1]] = VISITED
 	next_pos = get_neighbour(pos, grid)
@@ -306,7 +313,7 @@ def main():
 	global robot_id
 	robot_id = int(input())
 	info = robot.get_data(robot_id)
-	stderr.write("INFO: \n" + str(info))
+	stderr.write("INFO: \n" + str(info) + '\n')
 
 	# get beacons
 	beacons = dict()
@@ -343,6 +350,6 @@ def main():
 print("READY")
 try:
 	main()
-except:
+finally:
 	cleanup()
 
