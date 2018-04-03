@@ -2,7 +2,7 @@
 
 $id = $_GET["id"];
 
-if(isset($_POST["robotX"] && isset($_POST["robotY"]))){
+if(isset($_POST["robotX"]) && isset($_POST["robotY"])){
 	$servername = "localhost";	
 	$username = "charlesbai321";
 	$password = "pi1";
@@ -10,6 +10,8 @@ if(isset($_POST["robotX"] && isset($_POST["robotY"]))){
 
 	$x = $_POST["robotX"];
 	$y = $_POST["robotY"];
+	$temp = $_POST["temp"];
+
 	$dir = $_POST["robotdir"];
 	$conn = new mysqli($servername, $username, $password, $dbname);
 
@@ -27,12 +29,7 @@ if(isset($_POST["robotX"] && isset($_POST["robotY"]))){
 	$upX = $row["gridSizeX"];
 	$upY = $row["gridSizeY"];
 	
-	if($x < 0 || $x >= gridSizeX || $y < 0 || $y >= gridSizeY){
-		echo "out of bounds";
-		return;
-	}
-	
-	if($conn->query("UPDATE RobotInfo SET currLocX = $x, currLocY = $y, currDir = $dir WHERE id = $id;") == TRUE){
+	if($conn->query("UPDATE RobotInfo SET currLocX = $x, currLocY = $y, currDir = $dir, temp = $temp WHERE id = $id;") == TRUE){
 		echo "success";
 	}
 	else {

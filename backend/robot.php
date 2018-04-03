@@ -57,7 +57,7 @@ if($query->num_rows == 0){
 	$oneRobot["beacon_info"] = $beaconData;
 	$oneRobot["grid"] = $gridData;
 	$oneRobot["robot_loc"] = array($location["robotInitPosX"], $location["robotInitPosY"], 0);
-	$oneRobot["robot_dir"] = atan($location["robotInitVecY"] / $location["robotInitVecX"]);
+	$oneRobot["robot_dir"] = $location["robotInitAng"]; 
 	$oneRobot["scale"] = $location["scale"];
 	
 	echo json_encode($oneRobot, JSON_NUMERIC_CHECK);

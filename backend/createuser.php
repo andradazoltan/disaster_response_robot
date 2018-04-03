@@ -17,8 +17,8 @@
 
 <?php
 header("Access-Control-Allow-Origin: *");
-#if($_SERVER['REQUEST_METHOD'] == "POST" and isset($_POST['createuser'])){
-if(true){
+
+if(isset($_POST["username"])){
 	createuser();
 }
 

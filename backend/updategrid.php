@@ -1,7 +1,7 @@
 <?php
 $id = $_GET["id"];
 
-if(isset($_POST["xpos"] && isset($_POST["ypos"]))){
+if(isset($_POST["xpos"]) && isset($_POST["ypos"])){
 	$servername = "localhost";	
 	$username = "charlesbai321";
 	$password = "pi1";
@@ -32,10 +32,11 @@ if(isset($_POST["xpos"] && isset($_POST["ypos"]))){
 		return;
 	}
 
-	if($conn->query("UPDATE GridInfo SET status = '$status' WHERE robotID = $id && x = $x && y = $y) == TRUE){
+	if($conn->query("UPDATE GridInfo SET status = '$status' WHERE robotID = $id && x = $x && y = $y;") == TRUE){
 		echo "success";
 	}
 	else {
 		echo $conn->error;
 	}
+}
 ?>

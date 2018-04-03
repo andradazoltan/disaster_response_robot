@@ -3,21 +3,28 @@ if(isset($_POST['username'])){
 	login();
 }
 else {
-	echo "{\"no info\"}";
+	$ret = array();
+	$ret['status'] = 'no info';
+	echo json_encode($ret);
 }
 
 function login(){
 	session_start();
+	$ret = array();
 
 	$servername = "localhost";
 	$username = "charlesbai321";
 	$password = "pi1";
 	$dbname = "cynthiasdb";
+	
+	
 
 	$conn = new mysqli($servername, $username, $password, $dbname);
 
 	if($conn->connect_error){
-		die("Connection failed: " . $conn->connect_error);
+		$ret['status'] = 'database error';
+		echo json_encode($ret);
+		return;
 	}
 
 	$UserID = $_POST["username"];
@@ -34,14 +41,17 @@ function login(){
 			if(password_verify($userpass, $row['password'])){
 				$key = $row['Primarykey'];
 				$_SESSION["Primarykey"] = $key;
-				echo "{\"success\"}";
+				$ret['status'] = 'success';
+				echo json_encode($ret);
 				return;
 			}
 		}
-		echo "{\"wrong pass\"}";
+		$ret['status'] = 'wrong pass';
+		echo json_encode($ret);
 	}
 	else {
-		echo "{\"no such user\"}";
+		$ret['status'] = 'no such user';
+		echo json_encode($ret);
 	}
 }
 
