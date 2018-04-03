@@ -17,7 +17,7 @@ UNKNOWN = 0
 VISITED = 1
 OBSTACLE = 2
 OBJECT = 3
-BEACON = 7
+# BEACON = 7
 
 # epsilons and errors
 ANG_ROTATE = 50
@@ -26,7 +26,7 @@ DIST_ERROR = 0.368
 EPS = 1e-3
 
 # positions of the three beacons in order (pos, init rssi)
-beacons = None
+# beacons = None
 
 # grid info
 discovered, rows, cols = None, None, None
@@ -251,19 +251,20 @@ def explore(pos, grid):
 # initial position of robot_pos (pair)
 # to_search (visited array)
 def search(init_beacons, robot_pos, init_dir, to_search, sc):
-	global scale, rows, cols, discovered, vdir, prev_pos, beacons
+	# global beacons
+	global scale, rows, cols, discovered, vdir, prev_pos
 	discovered = 0
 	rows = len(to_search)
 	cols = len(to_search[0])
 	scale = sc
-	beacons = init_beacons
+	# beacons = init_beacons
 	vdir = init_dir
 	prev_pos = robot_pos
 
 	# initialize beacon dist
-	for addr in beacons:
-		to_search[beacons[addr][0][0]][beacons[addr][0][1]] = BEACON
-		beacons[addr].append(get_ratio(robot.get_rssi(addr), dist(robot_pos, beacons[addr][0])))
+	# for addr in beacons:
+	# 	to_search[beacons[addr][0][0]][beacons[addr][0][1]] = BEACON
+	# 	beacons[addr].append(get_ratio(robot.get_rssi(addr), dist(robot_pos, beacons[addr][0])))
 
 	''' # debug
 	stderr.write("scale: " + str(scale) + '\n')
