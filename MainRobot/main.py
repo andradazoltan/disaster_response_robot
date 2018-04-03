@@ -354,4 +354,6 @@ try:
 	main()
 finally:
 	cleanup()
+	if robot_id is not None:
+		robot.set_mode(robot_id, -1)
 

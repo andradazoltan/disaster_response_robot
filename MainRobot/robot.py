@@ -47,6 +47,12 @@ def get_joystick(r_id):
 def get_mode(r_id):
 	return requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
 
+def set_mode(r_id, mode):
+	requests.post(
+		"http://38.88.75.83/db/setmode.php?id="+str(r_id), 
+		data = { 'manual':mode }
+	)
+	return
 
 #################
 # RSSI stuff
@@ -94,8 +100,8 @@ def detect_obstacle(aim):
 def detect_obstacle(aim):
 	return False
 
-WAIT_FOR_90 = 1.3 # s
-WAIT_FOR_CELL = 1.4 # s
+WAIT_FOR_90 = 4.0 # s
+WAIT_FOR_CELL = 1.3 # s
 
 # signed angle from -pi to pi
 def rotate(angle):
