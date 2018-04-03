@@ -2,7 +2,6 @@ import subprocess
 import requests
 import math
 import motor
-import sensors
 
 #import sensors
 import time
@@ -41,7 +40,7 @@ def update_cell(r_id, pos, status):
 	return
 
 def get_joystick(r_id):
-	data = requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()
+	data = requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()
 	return data['dx'], data['dy']
 
 def get_mode(r_id):
@@ -72,24 +71,26 @@ obstacle_dist = 15 # distance to obstacle in cm
 
 # ##### TODO from a while ago, idk what this does anymore
 # detect obstacles with sonar
-# dist is in meters
 def detect_obstacle(aim):
-	dist = 100
 	if aim == LEFT:
-		sensors.turnServo(180)
-		dist = sensors.readDistance()
-		sensors.turnServo(90)
+		turnServo(180)
+		dist = readDistance()
+		turnServo(90)
 	elif aim == RIGHT:
-		sensors.turnServo(0)
-		dist = sensors.readDistance()
-		sensors.turnServo(90)
+		turnServo(0)
+		dist = readDistance()
+		turnServo(90)
 	else: # STRAIGHT
-		dist = sensors.readDistance()
+		dist = readDistance()
 
-	if 100*dist > obstacle_dist:
+	if dist > obstacle_dist:
 		return False
 	else:
 		return True
+
+# detect obstacles with sonar
+def detect_obstacle(aim):
+	return False
 
 WAIT_FOR_90 = 1.3 # s
 WAIT_FOR_CELL = 1.4 # s
@@ -113,7 +114,7 @@ def turn(direction, angle):
 	return
 
 def straight(scale):
-	straight(100)
+	motor.straight(100)
 	time.sleep(WAIT_FOR_CELL)
 	return
 
