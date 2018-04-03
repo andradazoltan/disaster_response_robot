@@ -10,7 +10,7 @@ def manual_mode(r_id):
 
 		if y < 0:
 			setDirection(BACKWARD)
-		else
+		else:
 			setDirection(FORWARD)
 
 		if radius == 0:

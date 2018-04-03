@@ -306,7 +306,7 @@ def main():
 	global robot_id
 	robot_id = int(input())
 	info = robot.get_data(robot_id)
-	sys.stderr.write("INFO: \n" + str(info))
+	stderr.write("INFO: \n" + str(info))
 
 	# get beacons
 	beacons = dict()
