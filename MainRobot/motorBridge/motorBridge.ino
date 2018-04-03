@@ -1,7 +1,7 @@
-#define MRA 2
-#define ER 3
-#define MLB 8
-#define EL 9
+#define MRA 3
+#define ER 2
+#define MLB 9
+#define EL 8
 
 #define E1 5           //Left wheel
 #define M1 4           //Left wheel
