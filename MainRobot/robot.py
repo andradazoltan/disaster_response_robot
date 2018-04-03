@@ -1,9 +1,15 @@
 import subprocess
 import requests
 import math
-
-#import sensors
+import motor
 import time
+
+#
+from sys import stderr
+
+# MODES
+AUTO = 0
+MANUAL = 1
 
 #################
 # server requests
@@ -31,6 +37,20 @@ def update_cell(r_id, pos, status):
 				'ypos':pos[1],
 				'status':status
 			}
+	)
+	return
+
+def get_joystick(r_id):
+	data = requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()
+	return data['dx'], data['dy']
+
+def get_mode(r_id):
+	return requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
+
+def set_mode(r_id, mode):
+	requests.post(
+		"http://38.88.75.83/db/setmode.php?id="+str(r_id), 
+		data = { 'manual':mode }
 	)
 	return
 
@@ -80,11 +100,12 @@ def detect_obstacle(aim):
 def detect_obstacle(aim):
 	return False
 
-WAIT_FOR_90 = 1.3 # s
-WAIT_FOR_CELL = 1.4 # s
+WAIT_FOR_90 = 4.0 # s
+WAIT_FOR_CELL = 1.3 # s
 
 # signed angle from -pi to pi
 def rotate(angle):
+	stderr.write("rotate by " + str(angle) + '\n')
 	if angle > 0:
 		motor.pivot(motor.LEFT, 100)
 	elif angle < 0:
@@ -101,8 +122,9 @@ def turn(direction, angle):
 		motor.turn(radius, motor.RIGHT, 100)
 	return
 
-def straight():
-	straight(100)
+def straight(scale):
+	stderr.write("forwards\n")
+	motor.straight(100)
 	time.sleep(WAIT_FOR_CELL)
 	return
 

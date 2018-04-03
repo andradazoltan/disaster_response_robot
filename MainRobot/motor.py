@@ -11,8 +11,8 @@ BACKWARD = 0
 #SETUP MOTORS
 #setup right wheel
 ER = 16
-MRA = 18
-MRB = 22
+MRA = 22
+MRB = 18
 
 GPIO.setup(MRA, GPIO.OUT)
 GPIO.setup(MRB, GPIO.OUT)
@@ -98,3 +98,5 @@ def turn(radius, direction, pwmValue):
 	GPIO.output(ER, True)
 	GPIO.output(EL, True)
 	
+def cleanup():
+	GPIO.cleanup()

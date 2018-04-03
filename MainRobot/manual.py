@@ -1,6 +1,9 @@
+from sys import stderr
+from robot import get_joystick, get_mode
 from motor import *
 
-def manual_mode(r_id):
+def manual_mode(r_id, robot_pos, vdir):
+	stderr.write("MANUAL MODE\n")
 	while True:
 		x, y = get_joystick(r_id)
 		
@@ -9,7 +12,7 @@ def manual_mode(r_id):
 
 		if y < 0:
 			setDirection(BACKWARD)
-		else
+		else:
 			setDirection(FORWARD)
 
 		if radius == 0:
@@ -22,10 +25,5 @@ def manual_mode(r_id):
 
 		mode = get_mode(r_id)
 		if mode != 1:
-			return mode
-
-def get_joystick(r_id):
-	#TODO: write code here for getting joystick values from server
-
-def get_mode(r_id):
-	return requests.get("http:/38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
+			stderr.write("RETURN to AUTO\n")
+			return

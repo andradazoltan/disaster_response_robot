@@ -1,8 +1,10 @@
-from automatic import *
+import robot
 from manual import *
 from sys import stdout, stderr
 from math import sqrt, pi, cos, sin, asin, acos
 from collections import deque, namedtuple
+
+from motor import cleanup
 
 Circle = namedtuple("Circle", "x y r")
 
@@ -17,7 +19,7 @@ UNKNOWN = 0
 VISITED = 1
 OBSTACLE = 2
 OBJECT = 3
-BEACON = 7
+# BEACON = 7
 
 # epsilons and errors
 ANG_ROTATE = 50
@@ -26,14 +28,14 @@ DIST_ERROR = 0.368
 EPS = 1e-3
 
 # positions of the three beacons in order (pos, init rssi)
-beacons = None
+# beacons = None
 
 # grid info
 discovered, rows, cols = None, None, None
 scale = 1.0
 
 # mode info
-mode = AUTO
+mode = robot.AUTO
 
 # robot info
 prev_pos, vdir = None, None
@@ -53,6 +55,9 @@ def dist(a, b):
 
 def cross(a, b):
 	return a[0]*b[1] - a[1]*b[0]
+
+def dot_prod(a, b):
+	return a[0]*b[0] + a[1]*b[1]
 
 def get_ratio(power, distance):
 	return power * sqr(distance)
@@ -117,17 +122,20 @@ def move_to(cur, goal):
 	global vdir, mode
 	robot.update_cell(robot_id, cur, 'visited')
 
+	stderr.write("move from " + str(cur) + " to " + str(goal) + '\n')
+
 	# left, straight, right ?
 	aim = direction(cur, goal)
 
-	# get angle
-	angle = asin(cross(vdir, aim))
+	# get angle in degrees
+	angle = asin(cross(vdir, aim)) * 180.0 / pi
 	# check if this angle is obtuse
-	if dot_p(vdir, aim) < 0:
-		angle = pi - angle
+	if dot_prod(vdir, aim) < 0:
+		angle = 180 - angle
 
 	# rotate to correct direction
-	robot.rotate(angle)
+	if angle > EPS:
+		robot.rotate(angle)
 
 	# move to next cell
 	robot.straight(scale)
@@ -157,6 +165,7 @@ def follow_path(pos, path, grid):
 
 # find next unvisited grid cell
 def reachable(pos, grid):
+	stderr.write("check reachability\n")
 	todo = deque()
 	vis = set()
 	previous = dict()
@@ -231,6 +240,7 @@ def get_neighbour(pos, grid):
 
 # explore unvisited area by following the right edge
 def explore(pos, grid):
+	stderr.write("search area\n")
 	global rows, cols, scale, discovered
 	grid[pos[0]][pos[1]] = VISITED
 	next_pos = get_neighbour(pos, grid)
@@ -251,19 +261,20 @@ def explore(pos, grid):
 # initial position of robot_pos (pair)
 # to_search (visited array)
 def search(init_beacons, robot_pos, init_dir, to_search, sc):
-	global scale, rows, cols, discovered, vdir, prev_pos, beacons
+	# global beacons
+	global scale, rows, cols, discovered, vdir, prev_pos, mode
 	discovered = 0
 	rows = len(to_search)
 	cols = len(to_search[0])
 	scale = sc
-	beacons = init_beacons
+	# beacons = init_beacons
 	vdir = init_dir
 	prev_pos = robot_pos
 
 	# initialize beacon dist
-	for addr in beacons:
-		to_search[beacons[addr][0][0]][beacons[addr][0][1]] = BEACON
-		beacons[addr].append(get_ratio(robot.get_rssi(addr), dist(robot_pos, beacons[addr][0])))
+	# for addr in beacons:
+	# 	to_search[beacons[addr][0][0]][beacons[addr][0][1]] = BEACON
+	# 	beacons[addr].append(get_ratio(robot.get_rssi(addr), dist(robot_pos, beacons[addr][0])))
 
 	''' # debug
 	stderr.write("scale: " + str(scale) + '\n')
@@ -278,10 +289,11 @@ def search(init_beacons, robot_pos, init_dir, to_search, sc):
 	robot_pos = reachable(robot_pos, to_search)
 	while robot_pos is not None:
 		if mode == robot.MANUAL:
-			robot_pos = robot.manual_mode(robot_id, robot_pos, vdir)
+			manual_mode(robot_id, robot_pos, vdir)
+			mode = robot.AUTO
+			break
 		else:
 			robot_pos = explore(robot_pos, to_search)
-		if mode != robot.MANUAL:
 			robot_pos = reachable(robot_pos, to_search)
 	robot.stop()
 	print("DONE")
@@ -303,14 +315,14 @@ def main():
 	global robot_id
 	robot_id = int(input())
 	info = robot.get_data(robot_id)
-	sys.stderr.write("INFO: \n" + str(info))
+	stderr.write("INFO: \n" + str(info) + '\n')
 
 	# get beacons
 	beacons = dict()
 	for addr in info["beacon_info"]:
 		beacons[addr] = [tuple(info["beacon_info"][addr])]
 
-	# robot position and direction
+	# robot position and direction, convert angle to radians
 	rob = tuple(info["robot_loc"])
 	angle = info["robot_dir"] * pi / 180.0
 	init_dir = (cos(angle), sin(angle))
@@ -338,5 +350,10 @@ def main():
 	return res
 
 print("READY")
-main()
+try:
+	main()
+finally:
+	cleanup()
+	if robot_id is not None:
+		robot.set_mode(robot_id, -1)
 
