@@ -2,7 +2,7 @@ from sys import stderr
 from robot import get_joystick, get_mode
 from motor import *
 
-def manual_mode(r_id):
+def manual_mode(r_id, robot_pos, vdir):
 	stderr.write("MANUAL MODE\n")
 	while True:
 		x, y = get_joystick(r_id)
@@ -24,5 +24,7 @@ def manual_mode(r_id):
 				turn(radius, RIGHT, pwmValue)
 
 		mode = get_mode(r_id)
+		stderr.write("mode: " + str(mode) + '\n')
 		if mode != 1:
-			return mode
+			stderr.write("RETURN to AUTO\n")
+			return

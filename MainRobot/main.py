@@ -127,14 +127,15 @@ def move_to(cur, goal):
 	# left, straight, right ?
 	aim = direction(cur, goal)
 
-	# get angle
-	angle = asin(cross(vdir, aim))
+	# get angle in degrees
+	angle = asin(cross(vdir, aim)) * 180.0 / pi
 	# check if this angle is obtuse
 	if dot_prod(vdir, aim) < 0:
-		angle = pi - angle
+		angle = 180 - angle
 
 	# rotate to correct direction
-	robot.rotate(angle)
+	if angle > EPS:
+		robot.rotate(angle)
 
 	# move to next cell
 	robot.straight(scale)
@@ -261,7 +262,7 @@ def explore(pos, grid):
 # to_search (visited array)
 def search(init_beacons, robot_pos, init_dir, to_search, sc):
 	# global beacons
-	global scale, rows, cols, discovered, vdir, prev_pos
+	global scale, rows, cols, discovered, vdir, prev_pos, mode
 	discovered = 0
 	rows = len(to_search)
 	cols = len(to_search[0])
@@ -288,10 +289,11 @@ def search(init_beacons, robot_pos, init_dir, to_search, sc):
 	robot_pos = reachable(robot_pos, to_search)
 	while robot_pos is not None:
 		if mode == robot.MANUAL:
-			robot_pos = manual_mode(robot_id, robot_pos, vdir)
+			manual_mode(robot_id, robot_pos, vdir)
+			mode = robot.AUTO
+			break
 		else:
 			robot_pos = explore(robot_pos, to_search)
-		if mode != robot.MANUAL:
 			robot_pos = reachable(robot_pos, to_search)
 	robot.stop()
 	print("DONE")
@@ -320,7 +322,7 @@ def main():
 	for addr in info["beacon_info"]:
 		beacons[addr] = [tuple(info["beacon_info"][addr])]
 
-	# robot position and direction
+	# robot position and direction, convert angle to radians
 	rob = tuple(info["robot_loc"])
 	angle = info["robot_dir"] * pi / 180.0
 	init_dir = (cos(angle), sin(angle))

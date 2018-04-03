@@ -2,9 +2,10 @@ import subprocess
 import requests
 import math
 import motor
-
-#import sensors
 import time
+
+#
+from sys import stderr
 
 # MODES
 AUTO = 0
@@ -45,6 +46,7 @@ def get_joystick(r_id):
 
 def get_mode(r_id):
 	return requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
+
 
 #################
 # RSSI stuff
@@ -97,6 +99,7 @@ WAIT_FOR_CELL = 1.4 # s
 
 # signed angle from -pi to pi
 def rotate(angle):
+	stderr.write("rotate by " + str(angle) + '\n')
 	if angle > 0:
 		motor.pivot(motor.LEFT, 100)
 	elif angle < 0:
@@ -114,6 +117,7 @@ def turn(direction, angle):
 	return
 
 def straight(scale):
+	stderr.write("forwards\n")
 	motor.straight(100)
 	time.sleep(WAIT_FOR_CELL)
 	return
