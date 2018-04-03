@@ -5,7 +5,6 @@ import motor
 import time
 from sensors import readDistance, turnServo
 
-#
 from sys import stderr
 
 # MODES
@@ -19,6 +18,7 @@ MANUAL = 1
 def get_data(r_id):
 	return requests.get("http://38.88.75.83/db/robot.php?id=" + str(r_id)).json()
 
+# update robot in database
 def update_robot(r_id, pos, vdir):
 	requests.post(
 			"http://38.88.75.83/db/updatelocation.php?id="+str(r_id),
@@ -31,6 +31,7 @@ def update_robot(r_id, pos, vdir):
 	)
 	return
 
+# update grid cell in database
 def update_cell(r_id, pos, status):
 	requests.post(
 			"http://38.88.75.83/db/updategrid.php?id="+str(r_id),
@@ -42,31 +43,22 @@ def update_cell(r_id, pos, status):
 	)
 	return
 
+# get joystick values
 def get_joystick(r_id):
 	data = requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()
 	return data['dx'], data['dy']
 
+# get mode (manual, auto, inactive)
 def get_mode(r_id):
 	return requests.get("http://38.88.75.83/db/manual.php?id=" + str(r_id)).json()['manual']
 
+# set mode (manual, auto, inactive) 
 def set_mode(r_id, mode):
 	requests.post(
 		"http://38.88.75.83/db/setmode.php?id="+str(r_id), 
 		data = { 'manual':mode }
 	)
 	return
-
-#################
-# RSSI stuff
-
-# convert dbm to watts, rssi is given in dbm, we want power
-def dbm_to_watts(val):
-	return 10 ** (val/10.0 - 3.0)
-
-# returns watts
-def get_rssi(addr):
-	rssi = subprocess.check_output(['hcitool', 'rssi', addr]).strip().split()[-1]
-	return dbm_to_watts(float(rssi))
 
 #################
 # robot sensors and stuff
@@ -76,10 +68,6 @@ RIGHT = -1
 STRAIGHT = 0
 obstacle_dist = 15 # distance to obstacle in cm
 
-# TODO updated
-# TODO CHECK THIS (and everything after this line)
-
-# ##### TODO from a while ago, idk what this does anymore
 # detect obstacles with sonar
 def detect_obstacle(aim):
 	stderr.write("look " + str(aim) + '\n')
@@ -100,6 +88,7 @@ def detect_obstacle(aim):
 	else:
 		return True
 
+# wait times
 WAIT_FOR_90 = 1.0 # s
 WAIT_FOR_CELL = 1.0 # s
 
@@ -114,22 +103,15 @@ def rotate(angle):
 	motor.stop()
 	return
 
-##### ???
-def turn(direction, angle):
-	radius = 45.0 / angle
-	if direction == LEFT:
-		motor.turn(radius, motor.LEFT, 100)
-	else:
-		motor.turn(radius, motor.RIGHT, 100)
-	return
-
-def straight(scale):
+# go straight
+def straight():
 	stderr.write("forwards\n")
 	motor.straight(100)
 	time.sleep(WAIT_FOR_CELL)
 	motor.stop()
 	return
 
+# stop the motors
 def stop():
 	motor.stop()
 	return
