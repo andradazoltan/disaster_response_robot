@@ -24,7 +24,6 @@ def manual_mode(r_id, robot_pos, vdir):
 				turn(radius, RIGHT, pwmValue)
 
 		mode = get_mode(r_id)
-		stderr.write("mode: " + str(mode) + '\n')
 		if mode != 1:
 			stderr.write("RETURN to AUTO\n")
 			return
