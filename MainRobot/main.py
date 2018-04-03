@@ -4,6 +4,8 @@ from sys import stdout, stderr
 from math import sqrt, pi, cos, sin, asin, acos
 from collections import deque, namedtuple
 
+from motor import cleanup
+
 Circle = namedtuple("Circle", "x y r")
 
 # communication and sensors
@@ -339,5 +341,8 @@ def main():
 	return res
 
 print("READY")
-main()
+try:
+	main()
+except:
+	cleanup()
 
