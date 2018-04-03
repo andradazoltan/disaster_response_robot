@@ -179,6 +179,7 @@ iframe {
   display: -moz-box;
   display: -ms-flexbox;
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
@@ -189,11 +190,196 @@ iframe {
 }
 
 .wrap-login100 {
-  width: 500px;
+  width: 100%;
+  max-width: 500px;
   background: #fff;
   border-radius: 10px;
   overflow: hidden;
 }
+
+/*//////////////////////////////////////////////////////////////////
+[ home-page ]*/
+.home-page-box {
+  clear: both;
+}
+
+.home-page-title {
+  display: block;
+  font-family: Poppins-Bold;
+  font-size: 2.7em;
+  color: #333333;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.home-page-user-title {
+  display: block;
+  font-family: Poppins-Bold;
+  font-size: 2.6em;
+  color: #1da1f2;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.home-page-user-logout {
+  color: #9C9C9C;
+  font-family: Poppins-SemiBold;
+  font-size: 0.9em;
+
+  -webkit-transition: all 0.6s;
+  -o-transition: all 0.6s;
+  -moz-transition: all 0.6s;
+  transition: all 0.6s;
+}
+
+.home-page-text {
+  font-family: Poppins-Regular;
+  font-size: 0.95em;
+  color: #333333;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.home-page-label {
+  font-family: Poppins-Bold;
+  font-size: 0.95em;
+  color: #333333;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/*//////////////////////////////////////////////////////////////////
+/* The switch - the box around the slider */
+
+.togglebutton{
+  width: 100%;
+  text-align: center;
+}
+
+.switch {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  width: 120px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  display:none;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #1da1f2;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 5px;
+  bottom: 5px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #a64bf4;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #a64bf4;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(85px);
+  -ms-transform: translateX(85px);
+  transform: translateX(85px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+
+/*------------------------------------------------------------------
+UPLOAD GLLAERY*/
+
+.list-img {
+  max-width:100%;
+  height: auto;
+  max-height: 500px;
+  align-items: center;
+}
+
+/*------------------------------------------------------------------
+GRID MAP*/
+
+#map {
+  width: 100%;
+  height: auto;
+  align-items: center;
+  text-align: center;
+  align-self: center;
+}
+
+/*------------------------------------------------------------------
+LIVE VIEW*/
+#liveView {
+  display: none;
+}
+
+#liveImg {
+  max-width: 90%;
+  width: auto;
+  height: auto;
+  text-align: center;
+  align-self: center;
+}
+
+#joystick {
+  display: none;
+}
+
+.legend { 
+  display: inline-table;
+  list-style: none; 
+  text-align: center;
+  align-items: center;
+}
+.legend li { 
+  margin-right: 10px; 
+  float:left;
+}
+.legend span { 
+  float: left; 
+  width: 12px; 
+  height: 12px; 
+  margin: 2px; 
+  border-radius: 2px;
+}
+
+.legend #circleBlue { background-color: #1da1f2; }
+.legend #circlePurple { background-color: #a64bf4; }
+.legend #circleAqua { background-color: #00dbde; }
+.legend #status {border-radius: 6px; background-color: #1ADE00; }
+
 
 
 /*------------------------------------------------------------------
@@ -206,7 +392,7 @@ iframe {
 .login100-form-title {
   display: block;
   font-family: Poppins-Bold;
-  font-size: 39px;
+  font-size: 2.6em;
   color: #333333;
   line-height: 1.2;
   text-align: center;
@@ -230,7 +416,7 @@ iframe {
 
 .label-input100 {
   font-family: Poppins-Regular;
-  font-size: 14px;
+  font-size: 0.9em;
   color: #333333;
   line-height: 1.5;
   padding-left: 7px;
@@ -238,7 +424,7 @@ iframe {
 
 .input100 {
   font-family: Poppins-Medium;
-  font-size: 16px;
+  font-size: 0.96em;
   color: #333333;
   line-height: 1.2;
 
@@ -379,7 +565,7 @@ iframe {
 
 .signup100-title {
   color: #333333;
-  font-family: Poppins-SemiBold;
+  font-family: Poppins-Medium;
   font-size: 14px;
 
   -webkit-transition: all 0.6s;
@@ -392,6 +578,7 @@ iframe {
   font-family: Poppins-Medium;
   font-size: 16px;
   color: #fff;
+  letter-spacing: 1px;
   line-height: 1.2;
   text-transform: uppercase;
 
