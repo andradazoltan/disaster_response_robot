@@ -3,6 +3,7 @@ import requests
 import math
 import motor
 import time
+from sensors import readDistance, turnServo
 
 #
 from sys import stderr
@@ -24,7 +25,8 @@ def update_robot(r_id, pos, vdir):
 			data = {
 				'robotX':pos[0], 
 				'robotY':pos[1], 
-				'robotdir':math.atan2(vdir[1],vdir[0]) * 180/math.pi
+				'robotdir':math.atan2(vdir[1],vdir[0]) * 180/math.pi,
+				'temp':24
 			}
 	)
 	return
@@ -80,6 +82,8 @@ obstacle_dist = 15 # distance to obstacle in cm
 # ##### TODO from a while ago, idk what this does anymore
 # detect obstacles with sonar
 def detect_obstacle(aim):
+	stderr.write("look " + str(aim) + '\n')
+	dist = 100
 	if aim == LEFT:
 		turnServo(180)
 		dist = readDistance()
@@ -96,12 +100,8 @@ def detect_obstacle(aim):
 	else:
 		return True
 
-# detect obstacles with sonar
-def detect_obstacle(aim):
-	return False
-
-WAIT_FOR_90 = 4.0 # s
-WAIT_FOR_CELL = 1.3 # s
+WAIT_FOR_90 = 1.0 # s
+WAIT_FOR_CELL = 1.0 # s
 
 # signed angle from -pi to pi
 def rotate(angle):
@@ -111,6 +111,7 @@ def rotate(angle):
 	elif angle < 0:
 		motor.pivot(motor.RIGHT, 100)
 	time.sleep(WAIT_FOR_90 * abs(angle) / 90.0)
+	motor.stop()
 	return
 
 ##### ???
@@ -126,6 +127,7 @@ def straight(scale):
 	stderr.write("forwards\n")
 	motor.straight(100)
 	time.sleep(WAIT_FOR_CELL)
+	motor.stop()
 	return
 
 def stop():

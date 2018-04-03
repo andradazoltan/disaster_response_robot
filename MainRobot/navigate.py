@@ -4,7 +4,7 @@ from sys import stdout, stderr
 from math import sqrt, pi, cos, sin, asin, acos
 from collections import deque, namedtuple
 
-from motor import cleanup
+from motor import cleanup, stop
 
 Circle = namedtuple("Circle", "x y r")
 
@@ -147,8 +147,8 @@ def move_to(cur, goal):
 	mode = robot.get_mode(robot_id)
 
 	# update robot
-	robot.update_robot(robot_id, cur, vdir)
-	robot.update_cell(robot_id, cur, 'robot')
+	robot.update_robot(robot_id, goal, vdir)
+	robot.update_cell(robot_id, goal, 'robot')
 
 	return goal
 
@@ -212,20 +212,20 @@ def get_neighbour(pos, grid):
 	best = -2
 	aim = -1
 	for i in range(0, 4):
-		dot_p = vdir[0] * cos(i*pi/2) + vdir[1] * sin(i*pi/2)
+		dot_p = vdir[0] * cos(i*pi/2.0) + vdir[1] * sin(i*pi/2.0)
 		if dot_p > best:
 			best = dot_p
 			aim = i
 
-	# start with left
-	left = (aim + 3) % 4
+	# start with right
+	right = (aim + 3) % 4
 	possible = None
 	# stderr.write(" @ " + str(pos) + '\n')
 	# we do not need to check behind the robot
 	for i in range(0, 3):
-		cur = (left + i) % 4
-		to_check = (int(round(pos[0] + cos(cur*pi/2))), int(round(pos[1] + sin(cur*pi/2))))
-		# stderr.write("TRY " + str(to_check) + '\n')
+		cur = (right + i) % 4
+		to_check = (int(round(pos[0] + cos(cur*pi/2.0))), int(round(pos[1] + sin(cur*pi/2.0))))
+		stderr.write("TRY " + str(to_check) + '\n')
 		# check to see if we want to go there
 		if grid[to_check[0]][to_check[1]] == UNKNOWN:
 			# check to see if we can go there
@@ -343,16 +343,17 @@ def main():
 	# get scale
 	scale = info["scale"]
 
-	# navigate
-	res = search(beacons, rob, init_dir, to_search, scale)
-	if res is not 0:
-		print("ERROR: " + str(res))
-	return res
+	if robot.get_mode(robot_id) == robot.MANUAL:
+		manual_mode(robot_id, 0, 0)
+	else:
+		# navigate
+		search(beacons, rob, init_dir, to_search, scale)
 
 print("READY")
 try:
 	main()
 finally:
+	stop()
 	cleanup()
 	if robot_id is not None:
 		robot.set_mode(robot_id, -1)

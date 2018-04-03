@@ -74,7 +74,7 @@ def turnServo(angle):
     dutyCycle = angle/18 + 2
     GPIO.output(servo, True)
     servoPWM.ChangeDutyCycle(dutyCycle)
-    sleep(1) #wait for servo to reach specified angle
+    time.sleep(1) #wait for servo to reach specified angle
     
     GPIO.output(servo, False)
     servoPWM.ChangeDutyCycle(0)
