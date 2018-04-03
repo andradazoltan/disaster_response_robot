@@ -1,6 +1,8 @@
 import subprocess
 import requests
 import math
+import motor
+import sensors
 
 #import sensors
 import time
@@ -70,26 +72,24 @@ obstacle_dist = 15 # distance to obstacle in cm
 
 # ##### TODO from a while ago, idk what this does anymore
 # detect obstacles with sonar
+# dist is in meters
 def detect_obstacle(aim):
+	dist = 100
 	if aim == LEFT:
-		turnServo(180)
-		dist = readDistance()
-		turnServo(90)
+		sensors.turnServo(180)
+		dist = sensors.readDistance()
+		sensors.turnServo(90)
 	elif aim == RIGHT:
-		turnServo(0)
-		dist = readDistance()
-		turnServo(90)
+		sensors.turnServo(0)
+		dist = sensors.readDistance()
+		sensors.turnServo(90)
 	else: # STRAIGHT
-		dist = readDistance()
+		dist = sensors.readDistance()
 
-	if dist > obstacle_dist:
+	if 100*dist > obstacle_dist:
 		return False
 	else:
 		return True
-
-# detect obstacles with sonar
-def detect_obstacle(aim):
-	return False
 
 WAIT_FOR_90 = 1.3 # s
 WAIT_FOR_CELL = 1.4 # s
