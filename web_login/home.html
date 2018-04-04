@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>ROBO</title>
+    <title>DR. ROBO</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--===============================================================================================-->
@@ -54,16 +54,28 @@
 
             <div class="wrap-login100 m-t-10 m-b-20 p-l-55 p-r-55 p-t-50 p-b-30">
                 <span class="home-page-title">
-						Robo V1.0
+						Dr. Robo V1.0
 					</span>
 
                 <div class="home-page-text text-center m-b-10">
                     <ul class="legend">
-                        <li><span id="status"></span> Status: </li>
+                        <li><span id="status"></span> <span id="active">Status: Active </span></li>
                     </ul>
                 </div>
 
-                <div class="text-center" id="gridMap">
+                <div class="container-login100-form-btn m-b-20" id="initialize">
+                    <div class="text-center home-page-text p-t-10 m-b-15">Dr. Robo, the Disaster Response Robot is currently inactive. Press the button below to set up a search
+                        parameter and initialize the robot.</div>
+
+                    <div class="wrap-login100-form-btn">
+                        <div class="login100-form-bgbtn"> </div>
+                        <button class="login100-form-btn" onclick="location.href='http://38.88.75.83/Login/initialize.html'">
+                                    initialize robot
+                            </button>
+                    </div>
+                </div>
+
+                <div class="text-center m-t-10" id="gridMap">
                     <span class="home-page-label text-center">
                         Current Area of Search
                     </span>
@@ -75,25 +87,19 @@
                         <ul class="legend">
                             <li><span id="circleBlue"></span> Current Location</li>
                             <li><span id="circlePurple"></span> Visited </li>
-                            <li><span id="circleAqua"></span> Beacon Locations</li>
+                            <li><span id="circleAqua"></span> Unvisited</li>
                         </ul>
                     </div>
                 </div>
 
-
-
                 <div class="text-center m-b-5" id="robotData">
                     <div class="home-page-label m-b-5">
                         Current Location:
-                        <span class="home-page-text" data-symbol="&#xf190;">Coordinates</span>
+                        <span class="home-page-text"> 49.2617893, -123.250463</span>
                     </div>
                     <div class="home-page-label m-b-5">
                         Ambient Temperature:
-                        <span class="home-page-text" data-symbol="&#xf190;">Active</span>
-                    </div>
-                    <div class="home-page-label m-b-5">
-                        Ambient Humidity:
-                        <span class="home-page-text" data-symbol="&#xf190;">Active</span>
+                        <span id="temperature" class="home-page-text"></span>
                     </div>
 
                 </div>
@@ -179,25 +185,6 @@
 
             </div>
 
-            <div class="wrap-login100 m-t-25 m-b-25 p-l-55 p-r-55 p-t-50 p-b-50">
-                <div class="container-login100-form-btn m-b-20">
-                    <div class="wrap-login100-form-btn">
-                        <div class="guest100-form-bgbtn"></div>
-                        <button class="login100-form-btn" onclick="location.href='http://38.88.75.83/Login/signup.html'">
-                                    Emergency Response Team Status
-                                </button>
-                    </div>
-                </div>
-                <div class="container-login100-form-btn">
-                    <div class="wrap-login100-form-btn">
-                        <div class="guest100-form-bgbtn"></div>
-                        <button class="login100-form-btn" onclick="location.href='http://38.88.75.83/Login/signup.html'">
-                                        Map
-                        </button>
-                    </div>
-                </div>
-
-            </div>
 
         </div>
     </div>
@@ -220,6 +207,7 @@
     <script src="js/main.js"></script>
     <script src="js/upload_script.js"></script>
     <script src="js/map.js"></script>
+    <script src="js/setup.js"></script>
     <script src="js/liveview.js"></script>
     <script type="text/javascript" src="js/underscore-min.js"></script>
     <script type="text/javascript" src="js/backbone-min.js"></script>
