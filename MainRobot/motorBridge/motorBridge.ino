@@ -1,7 +1,7 @@
 #define MRA 3
-#define ER 2
+#define ER A0
 #define MLB 9
-#define EL 8
+#define EL A1
 
 #define E1 5           //Left wheel
 #define M1 4           //Left wheel
@@ -22,11 +22,8 @@ void setup() {
 }
 
 void loop() {
-  byte pwm_left = pulseIn(EL, HIGH);
-  byte pwm_right = pulseIn(ER, HIGH);
-
   digitalWrite(M1, digitalRead(MLB));
   digitalWrite(M2, digitalRead(MRA));
-  analogWrite(E1, pwm_left);
-  analogWrite(E2, pwm_right);
+  analogWrite(E1, analogRead(EL));
+  analogWrite(E2, analogRead(ER));
 }
