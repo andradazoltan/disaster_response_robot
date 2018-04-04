@@ -1,6 +1,7 @@
 window.onload = getLivePhoto();
 window.onload = initialize();
 
+
 function getLivePhoto() {
     $.ajax({
         type: 'GET',
@@ -8,6 +9,7 @@ function getLivePhoto() {
         data: {
             format: 'json'
         },
+        cache: false,
         success: function (data) {
             console.log("sucessfully got photo");
             console.log(data);
@@ -16,15 +18,23 @@ function getLivePhoto() {
         error: function (data) {
             console.log("error getting data");
         },
-    });
-    //window.setInterval(getLivePhoto, 2000);
+    });  
+    window.setInterval(getLivePhoto, 1500);
 }
 
 function updateView(data) {
     var obj = JSON.parse(data);
     var img = document.getElementById("liveImg");
-    console.log(obj.photo);
     img.src = obj.photo;
+
+    img.onload = function(){
+        img.src = obj.photo;
+        setTimeout(timedRefresh(obj.photo), 500);
+    };
+    
+    function timedRefresh(src) {
+        img.src = src + '?d=' + Date.now();
+    }
 }
 
 
@@ -130,17 +140,37 @@ function initialize() {
                 $('#toggle').prop('checked', true);
                 document.getElementById('mode').textContent = "Manual";
                 document.getElementById('joystick').style.display = "inline";
+
             } else if (obj.manual == 0) {
                 $('#toggle').prop('checked', false);
                 document.getElementById('liveView').style.display = "inline";
                 document.getElementById('mode').textContent = "Automatic";
                 document.getElementById('joystick').style.display = "none";
-            } else {
+
+            } else if (obj.manual == -1) {
+
                 document.getElementById('status').style.backgroundColor = "red";
+                document.getElementById('active').style.textContent = "Status: Inactive";
+                document.getElementById('robotData').style.display = "none";
+                document.getElementById('gridMap').style.display = "none";
+
+                //show initialize button
+                document.getElementById('initialize').style.display = "inline";
+
             }
         },
         error: function (data) {
             console.log("error getting manual data");
         },
     });
+
+
+    $.ajax({
+        type: "GET",
+        url: 'http://38.88.75.83/db/temp.php?id=7',
+        success: function (data) {
+            var temp = JSON.parse(data).temp;
+            document.getElementById('temperature').style.textContent = temp + "degrees C";
+        }
+    });     
 }
