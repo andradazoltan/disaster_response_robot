@@ -1,17 +1,12 @@
 import robot
-from manual import *
+from manual import manual_mode
+from motor import cleanup, stop
+
 from sys import stdout, stderr
 from math import sqrt, pi, cos, sin, asin, acos
 from collections import deque, namedtuple
 
-from motor import cleanup, stop
-
-Circle = namedtuple("Circle", "x y r")
-
-# communication and sensors
-###
-
-########################################################################
+########################### GLOBAL VARIABLES ###########################
 
 # grid values
 OUTSIDE = -1
@@ -37,7 +32,7 @@ mode = robot.AUTO
 prev_pos, vdir = None, None
 robot_id = None
 
-########################################################################
+########################### MATH FUNCTIONS #############################
 
 # square function
 def sqr(x):
@@ -68,7 +63,7 @@ def direction(s, t):
 	norm = sqrt(sqr(x) + sqr(y))
 	return (float(x)/norm, float(y)/norm)
 
-########################################################################
+############################ HELPER FUNCTIONS ###########################
 
 # move robot from cur to goal
 def move_to(cur, goal):
@@ -113,6 +108,37 @@ def follow_path(pos, path, grid):
 			robot.stop()
 			return pos
 	return pos
+
+# detect obstacles, find neighbour
+def get_neighbour(pos, grid):
+	best = -2
+	aim = -1
+	for i in range(0, 4):
+		dot_p = vdir[0] * cos(i*pi/2.0) + vdir[1] * sin(i*pi/2.0)
+		if dot_p > best:
+			best = dot_p
+			aim = i
+
+	# start with right
+	right = (aim + 3) % 4
+	possible = None
+	# we do not need to check behind the robot
+	for i in range(0, 3):
+		cur = (right + i) % 4
+		to_check = (int(round(pos[0] + cos(cur*pi/2.0))), int(round(pos[1] + sin(cur*pi/2.0))))
+		stderr.write("TRY " + str(to_check) + '\n')
+		# check to see if we want to go there
+		if grid[to_check[0]][to_check[1]] == UNKNOWN:
+			# check to see if we can go there
+			blocked = robot.detect_obstacle(i-1)
+			if blocked:
+				grid[to_check[0]][to_check[1]] = OBSTACLE
+				robot.update_cell(robot_id, to_check, 'obstacle')
+			elif possible is None:
+				possible = to_check
+	return possible
+
+################# FIND AND SEARCH NEXT GRID CELL ########################
 
 # find next unvisited grid cell
 def reachable(pos, grid):
@@ -159,37 +185,6 @@ def reachable(pos, grid):
 	robot.stop()
 	return pos
 
-########################################################################
-
-# detect obstacles, find neighbour
-def get_neighbour(pos, grid):
-	best = -2
-	aim = -1
-	for i in range(0, 4):
-		dot_p = vdir[0] * cos(i*pi/2.0) + vdir[1] * sin(i*pi/2.0)
-		if dot_p > best:
-			best = dot_p
-			aim = i
-
-	# start with right
-	right = (aim + 3) % 4
-	possible = None
-	# we do not need to check behind the robot
-	for i in range(0, 3):
-		cur = (right + i) % 4
-		to_check = (int(round(pos[0] + cos(cur*pi/2.0))), int(round(pos[1] + sin(cur*pi/2.0))))
-		stderr.write("TRY " + str(to_check) + '\n')
-		# check to see if we want to go there
-		if grid[to_check[0]][to_check[1]] == UNKNOWN:
-			# check to see if we can go there
-			blocked = robot.detect_obstacle(i-1)
-			if blocked:
-				grid[to_check[0]][to_check[1]] = OBSTACLE
-				robot.update_cell(robot_id, to_check, 'obstacle')
-			elif possible is None:
-				possible = to_check
-	return possible
-
 # explore unvisited area by following an edge
 def explore(pos, grid):
 	stderr.write("search area\n")
@@ -206,12 +201,12 @@ def explore(pos, grid):
 	robot.stop()
 	return pos
 
-########################################################################
+######################### MAIN AUTOMATIC MODE ###########################
 
 # assume the input has been cleaned up
 # initial position of robot_pos (pair)
 # to_search (visited array)
-def search(robot_pos, init_dir, to_search, sc):
+def automatic_mode(robot_pos, init_dir, to_search, sc):
 	global scale, rows, cols, discovered, vdir, prev_pos, mode
 	discovered = 0
 	rows = len(to_search)
@@ -234,49 +229,3 @@ def search(robot_pos, init_dir, to_search, sc):
 	print("DONE")
 
 	return discovered
-
-########################################################################
-
-# get input and run code
-def main():
-	global robot_id
-	robot_id = int(input())
-	info = robot.get_data(robot_id)
-	stderr.write("INFO: \n" + str(info) + '\n')
-
-	# robot position and direction, convert angle to radians
-	rob = tuple(info["robot_loc"])
-	angle = info["robot_dir"] * pi / 180.0
-	init_dir = (cos(angle), sin(angle))
-
-	# get grid
-	grid = info["grid"]
-
-	# dimensions
-	n, m = grid["grid_size"]
-	to_search = [[OUTSIDE for y in range(0, m+2)] for x in range(0, n+2)]
-
-	# search area
-	for row in range(1, n+1):
-		left, right = grid["to_search"][row-1]
-		for col in range(left, right+1):
-			to_search[row][col] = UNKNOWN
-
-	# get scale
-	scale = info["scale"]
-
-	if robot.get_mode(robot_id) == robot.MANUAL:
-		manual_mode(robot_id, 0, 0)
-	else:
-		# navigate
-		search(rob, init_dir, to_search, scale)
-
-print("READY")
-try:
-	main()
-finally:
-	stop()
-	cleanup()
-	if robot_id is not None:
-		robot.set_mode(robot_id, -1)
-

@@ -1,18 +1,17 @@
+import motor
+
 import subprocess
 import requests
 import math
-import motor
 import time
 from sensors import readDistance, turnServo
-
 from sys import stderr
 
-# MODES
+# ROBOT MODES
 AUTO = 0
 MANUAL = 1
 
-#################
-# server requests
+##################### SERVER REQUEST FUNCTIONS #########################
 
 # get initial configuration
 def get_data(r_id):
@@ -60,15 +59,18 @@ def set_mode(r_id, mode):
 	)
 	return
 
-#################
-# robot sensors and stuff
+########################### ROBOT COMMANDS ############################
 
 LEFT = 1
 RIGHT = -1
 STRAIGHT = 0
 obstacle_dist = 15 # distance to obstacle in cm
 
-# detect obstacles with sonar
+# wait times
+WAIT_FOR_90 = 1.0 # s
+WAIT_FOR_CELL = 1.0 # s
+
+# search for obstacles using the ultrasound sensor
 def detect_obstacle(aim):
 	stderr.write("look " + str(aim) + '\n')
 	dist = 100
@@ -88,11 +90,7 @@ def detect_obstacle(aim):
 	else:
 		return True
 
-# wait times
-WAIT_FOR_90 = 1.0 # s
-WAIT_FOR_CELL = 1.0 # s
-
-# signed angle from -pi to pi
+# command the robot to turn an angle of -pi to pi
 def rotate(angle):
 	stderr.write("rotate by " + str(angle) + '\n')
 	if angle > 0:
@@ -103,7 +101,7 @@ def rotate(angle):
 	motor.stop()
 	return
 
-# go straight
+# direct robot to go straight
 def straight():
 	stderr.write("forwards\n")
 	motor.straight(100)
@@ -111,7 +109,7 @@ def straight():
 	motor.stop()
 	return
 
-# stop the motors
+# stop the robot
 def stop():
 	motor.stop()
 	return
